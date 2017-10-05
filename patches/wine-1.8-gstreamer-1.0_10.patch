@@ -1,0 +1,39 @@
+From 3fb8ec59ffcc3e60ae41d364ed9e1f2bd40d4b2c Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 19 Feb 2016 14:11:53 -0600
+Subject: [PATCH] winegstreamer: Fix usage of gst_audio_format_build_integer.
+
+Signed-off-by: Andrew Eikum <aeikum@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/winegstreamer/gsttffilter.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/dlls/winegstreamer/gsttffilter.c b/dlls/winegstreamer/gsttffilter.c
+index b8435ba..72eeda2 100644
+--- a/dlls/winegstreamer/gsttffilter.c
++++ b/dlls/winegstreamer/gsttffilter.c
+@@ -838,12 +838,15 @@ static HRESULT WINAPI Gstreamer_AudioConvert_SetMediaType(TransformFilter *tf, P
+         inisfloat = IsEqualGUID(&inwfx->SubFormat, &KSDATAFORMAT_SUBTYPE_IEEE_FLOAT);
+         if (inwfx->Samples.wValidBitsPerSample)
+             indepth = inwfx->Samples.wValidBitsPerSample;
+-    }
++    } else if (inwfe->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
++        inisfloat = TRUE;
++
++    if (inisfloat)
++        format = inwfe->wBitsPerSample == 64 ? GST_AUDIO_FORMAT_F64LE : GST_AUDIO_FORMAT_F32LE;
++    else
++        format = gst_audio_format_build_integer(inwfe->wBitsPerSample == 8 ? FALSE : TRUE,
++                G_LITTLE_ENDIAN, inwfe->wBitsPerSample, indepth);
+ 
+-    format = inisfloat ? (inwfe->wBitsPerSample == 64 ? GST_AUDIO_FORMAT_F64LE : GST_AUDIO_FORMAT_F32LE)
+-                 : gst_audio_format_build_integer(inwfe->wBitsPerSample == 8 ? FALSE : TRUE,
+-                                                  inwfe->wBitsPerSample,
+-                                                  indepth, G_LITTLE_ENDIAN);
+     capsin = gst_caps_new_simple("audio/x-raw",
+                                  "format", G_TYPE_STRING, gst_audio_format_to_string(format),
+                                  "channels", G_TYPE_INT, inwfe->nChannels,
+-- 
+2.1.4
+

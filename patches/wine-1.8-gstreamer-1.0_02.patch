@@ -1,0 +1,26 @@
+From 6cecd59f66f258ed7b9629aac5e2441f85d24982 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 11 Jan 2016 14:09:54 -0600
+Subject: [PATCH] include: Add TrySubmitThreadpoolCallback declaration.
+
+Signed-off-by: Andrew Eikum <aeikum@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ include/winbase.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/winbase.h b/include/winbase.h
+index 7216086..f35391d 100644
+--- a/include/winbase.h
++++ b/include/winbase.h
+@@ -2545,6 +2545,7 @@ WINBASEAPI BOOL        WINAPI TransmitCommChar(HANDLE,CHAR);
+ WINBASEAPI BOOLEAN     WINAPI TryAcquireSRWLockExclusive(PSRWLOCK);
+ WINBASEAPI BOOLEAN     WINAPI TryAcquireSRWLockShared(PSRWLOCK);
+ WINBASEAPI BOOL        WINAPI TryEnterCriticalSection(CRITICAL_SECTION *lpCrit);
++WINBASEAPI BOOL        WINAPI TrySubmitThreadpoolCallback(PTP_SIMPLE_CALLBACK,void*,TP_CALLBACK_ENVIRON*);
+ WINBASEAPI BOOL        WINAPI TzSpecificLocalTimeToSystemTime(const TIME_ZONE_INFORMATION*,const SYSTEMTIME*,LPSYSTEMTIME);
+ WINBASEAPI LONG        WINAPI UnhandledExceptionFilter(PEXCEPTION_POINTERS);
+ WINBASEAPI BOOL        WINAPI UnlockFile(HANDLE,DWORD,DWORD,DWORD,DWORD);
+-- 
+2.1.4
+

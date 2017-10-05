@@ -1,0 +1,37 @@
+From d82321006de92dcd74465c905121618a76eae76a Mon Sep 17 00:00:00 2001
+From: Nikolay Sivov <nsivov@codeweavers.com>
+Date: Tue, 26 Sep 2017 10:13:47 +0100
+Subject: [PATCH] gdi32: Pick first charmap if none was selected using
+ preferred encoding.
+
+FreeType 2.8.1 has similar logic removed from WinFNT module,
+that always pre-selected first charmap.
+
+Signed-off-by: Nikolay Sivov <nsivov@codeweavers.com>
+Signed-off-by: Huw Davies <huw@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/gdi32/freetype.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/dlls/gdi32/freetype.c b/dlls/gdi32/freetype.c
+index 83ca6e2..346e21d 100644
+--- a/dlls/gdi32/freetype.c
++++ b/dlls/gdi32/freetype.c
+@@ -5143,6 +5143,13 @@ static FT_Encoding pick_charmap( FT_Face face, int charset )
+         if (select_charmap( face, *encs )) break;
+         encs++;
+     }
++
++    if (!face->charmap && face->num_charmaps)
++    {
++        if (!pFT_Set_Charmap(face, face->charmaps[0]))
++            return face->charmap->encoding;
++    }
++
+     return *encs;
+ }
+ 
+-- 
+2.1.4
+

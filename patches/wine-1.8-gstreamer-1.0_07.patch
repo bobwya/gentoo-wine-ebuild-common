@@ -1,0 +1,60 @@
+From 049412a48c9ad10d571ae0d102a3659a2948406c Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 5 Feb 2016 13:32:33 -0600
+Subject: [PATCH] configure: Be more helpful for users with mis-configured
+ glib-2.0.
+
+glib-2.0 ships different headers for x86 and x86_64, but pkgconfig
+doesn't support returning different headers for a particular
+architecture.
+
+Signed-off-by: Andrew Eikum <aeikum@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ configure    | 4 +++-
+ configure.ac | 6 ++++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/configure b/configure
+index 27373d1d..98ad5f0 100755
+--- a/configure
++++ b/configure
+@@ -12697,6 +12697,8 @@ fi
+ else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+ $as_echo "no" >&6; }
++                 ac_glib2_broken=yes
++                 as_fn_append wine_notices "|glib-2.0 pkgconfig configuration is for the wrong architecture, winegstreamer won't be built."
+ fi
+ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ fi
+@@ -12707,7 +12709,7 @@ test -z "$GSTREAMER_CFLAGS" || GSTREAMER_CFLAGS=`echo " $GSTREAMER_CFLAGS" | sed
+ test -z "$GSTREAMER_LIBS" || GSTREAMER_LIBS=`echo " $GSTREAMER_LIBS" | sed 's/ -L\([^/]\)/ -L\$(top_builddir)\/\1/g'`
+ 
+ fi
+-if test "x$ac_cv_lib_gstreamer_1_0_gst_pad_new" != xyes -a "x$ac_cv_header_QuickTime_ImageCompression_h" != xyes; then :
++if test "x$ac_glib2_broken" != xyes -a "x$ac_cv_lib_gstreamer_1_0_gst_pad_new" != xyes -a "x$ac_cv_header_QuickTime_ImageCompression_h" != xyes ; then :
+   case "x$with_gstreamer" in
+   x)   as_fn_append wine_notices "|gstreamer-1.0 base plugins ${notice_platform}development files not found, gstreamer support disabled" ;;
+   xno) ;;
+diff --git a/configure.ac b/configure.ac
+index 59fc4fa..b5fc9d1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1478,9 +1478,11 @@ then
+                                                  [[static int a[sizeof(gint64) > 4 ? 1 : -1]; if (a[0]) return 0;]])],
+                 [AC_MSG_RESULT([yes])
+                  AC_CHECK_LIB(gstreamer-1.0,gst_pad_new,[:],,[$GSTREAMER_LIBS])],
+-                [AC_MSG_RESULT([no])])])])
++                [AC_MSG_RESULT([no])
++                 ac_glib2_broken=yes
++                 WINE_NOTICE([glib-2.0 pkgconfig configuration is for the wrong architecture, winegstreamer won't be built.])])])])
+ fi
+-WINE_NOTICE_WITH(gstreamer,[test "x$ac_cv_lib_gstreamer_1_0_gst_pad_new" != xyes -a "x$ac_cv_header_QuickTime_ImageCompression_h" != xyes],
++WINE_NOTICE_WITH(gstreamer,[test "x$ac_glib2_broken" != xyes -a "x$ac_cv_lib_gstreamer_1_0_gst_pad_new" != xyes -a "x$ac_cv_header_QuickTime_ImageCompression_h" != xyes ],
+                  [gstreamer-1.0 base plugins ${notice_platform}development files not found, gstreamer support disabled])
+ test "x$ac_cv_lib_gstreamer_1_0_gst_pad_new" = xyes || enable_winegstreamer=${enable_winegstreamer:-no}
+ 
+-- 
+2.1.4
+

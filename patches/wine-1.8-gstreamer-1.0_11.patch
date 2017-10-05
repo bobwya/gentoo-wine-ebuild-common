@@ -1,0 +1,29 @@
+From 8cbb680b449763ac4962e479c975f5bee3f1b8c7 Mon Sep 17 00:00:00 2001
+From: Michael Stefaniuc <mstefani@redhat.de>
+Date: Wed, 2 Mar 2016 11:17:14 +0100
+Subject: [PATCH] winegstreamer: Avoid a FALSE:TRUE conditional expression.
+
+Signed-off-by: Michael Stefaniuc <mstefani@redhat.de>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/winegstreamer/gsttffilter.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winegstreamer/gsttffilter.c b/dlls/winegstreamer/gsttffilter.c
+index 72eeda2..2209c5e 100644
+--- a/dlls/winegstreamer/gsttffilter.c
++++ b/dlls/winegstreamer/gsttffilter.c
+@@ -844,8 +844,8 @@ static HRESULT WINAPI Gstreamer_AudioConvert_SetMediaType(TransformFilter *tf, P
+     if (inisfloat)
+         format = inwfe->wBitsPerSample == 64 ? GST_AUDIO_FORMAT_F64LE : GST_AUDIO_FORMAT_F32LE;
+     else
+-        format = gst_audio_format_build_integer(inwfe->wBitsPerSample == 8 ? FALSE : TRUE,
+-                G_LITTLE_ENDIAN, inwfe->wBitsPerSample, indepth);
++        format = gst_audio_format_build_integer(inwfe->wBitsPerSample != 8, G_LITTLE_ENDIAN,
++                inwfe->wBitsPerSample, indepth);
+ 
+     capsin = gst_caps_new_simple("audio/x-raw",
+                                  "format", G_TYPE_STRING, gst_audio_format_to_string(format),
+-- 
+2.1.4
+
