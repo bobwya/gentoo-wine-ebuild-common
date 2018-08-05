@@ -1,7 +1,6 @@
 # gentoo-wine-ebuild-common
 
 Ebuild patches, compiler tests and BASH scripts to support the:
-  *  **app-emulation/wine**
   *  **app-emulation/wine-staging**
   *  **app-emulation/wine-vanilla**
   
