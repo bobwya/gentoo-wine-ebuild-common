@@ -1,0 +1,10 @@
+12fc123338f7af601d3fe76b168a644fcd7e1362 
+
+--- a/dlls/ntdll/directory.c	2020-06-29 22:12:06.056783963 +0100
++++ b/dlls/ntdll/directory.c	2020-06-29 22:39:38.304201906 +0100
+@@ -27,4 +27,5 @@
+ #include <sys/types.h>
+ #ifdef HAVE_DIRENT_H
++# undef __USE_GNU
+ # include <dirent.h>
+ #endif
