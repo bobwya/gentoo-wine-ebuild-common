@@ -1,4 +1,19 @@
-8db46756ca91695c7242e05d24a3e5ec4340c10c
+From 8db46756ca91695c7242e05d24a3e5ec4340c10c Mon Apr 19 20:08:48 2021
+From 7f1d6a8ee2c72409f4f840df23401c9702adee5e Mon Sep 17 00:00:00 2001
+From: Hans Leidekker <hans@codeweavers.com>
+Date: Wed, 27 Oct 2021 19:23:14 +0200
+Subject: [PATCH] wldap32: Rename ldap_connect() to avoid a name conflict.
+
+Fixes the build against OpenLDAP 2.5.
+
+Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=51129
+Signed-off-by: Hans Leidekker <hans@codeweavers.com>
+Signed-off-by: Michael Stefaniuc <mstefani@winehq.org>
+---
+ dlls/wldap32/init.c            | 2 +-
+ dlls/wldap32/winldap_private.h | 2 +-
+ dlls/wldap32/wldap32.spec      | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/dlls/wldap32/init.c b/dlls/wldap32/init.c
 index afaef3b52f2..d3409d1465b 100644
@@ -39,3 +54,6 @@ index 8a8e29fc198..33e630dea87 100644
   89 cdecl ldap_control_free(ptr) ldap_control_freeA
   90 cdecl ldap_control_freeA(ptr)
   91 cdecl ldap_control_freeW(ptr)
+-- 
+GitLab
+
