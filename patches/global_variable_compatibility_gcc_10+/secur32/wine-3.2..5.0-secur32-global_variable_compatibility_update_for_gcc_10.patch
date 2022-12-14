@@ -1,0 +1,31 @@
+402c0de2a8bae5a0a192f9368d4c49cf9bfdc2e9..e402fdf364fc76838ba4e11a11fef3c552110639
+483e26259ba0530a42be722976df63a489a0e6d9..d36e0fa240369daf38ceced37462878105f04a67
+7483a38d4c4eb823362f093a3e721335b5854365..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+
+From 93888fbb3e4d973f5878a0aab16a9d64fb73a764 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:25 -0600
+Subject: [PATCH] secur32: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/secur32/secur32_priv.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/secur32/secur32_priv.h b/dlls/secur32/secur32_priv.h
+index 4566fe2446f..462dc6193a9 100644
+--- a/dlls/secur32/secur32_priv.h
++++ b/dlls/secur32/secur32_priv.h
+@@ -192,6 +192,6 @@ void SECUR32_arc4Cleanup(arc4_info *a4i) DECLSPEC_HIDDEN;
+ 
+ 
+-SecPkgInfoW *ntlm_package_infoW DECLSPEC_HIDDEN;
+-SecPkgInfoA *ntlm_package_infoA DECLSPEC_HIDDEN;
++extern SecPkgInfoW *ntlm_package_infoW DECLSPEC_HIDDEN;
++extern SecPkgInfoA *ntlm_package_infoA DECLSPEC_HIDDEN;
+ 
+ /* schannel internal interface */
+--

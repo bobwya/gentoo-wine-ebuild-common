@@ -1,0 +1,71 @@
+3073a17202b0c9687d6302ffbfb10c2363169448..ba1495f7c2c3cff3db9ce99600bfc8ddfa365387
+
+commit 2b16e1fa6161dff3e8f38b11327842b24733fc7f
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Tue Jan 31 15:58:00 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Tue Jan 31 16:03:33 2023 +0000
+
+ntdll: add function wine_get_package_string()
+---
+
+ dlls/ntdll/misc.c     | 8 ++++++++
+ dlls/ntdll/ntdll.spec | 1 +
+ libs/wine/config.c    | 6 ++++++
+ libs/wine/wine.map    | 1 +
+ 4 files changed, 16 insertions(+)
+
+
+diff --git a/dlls/ntdll/misc.c b/dlls/ntdll/misc.c
+index c29a1c26c26..8095f88ceab 100644
+--- a/dlls/ntdll/misc.c
++++ b/dlls/ntdll/misc.c
+@@ -61,4 +61,12 @@ const char * CDECL NTDLL_wine_get_version(void)
+ }
+ 
++/*********************************************************************
++ *                  wine_get_package_string   (NTDLL.@)
++ */
++const char * CDECL NTDLL_wine_get_package_string(void)
++{
++    return wine_get_package_string();
++}
++
+ /*********************************************************************
+  *                  wine_get_build_id   (NTDLL.@)
+diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
+index e61a2578da5..c7f4b314a76 100644
+--- a/dlls/ntdll/ntdll.spec
++++ b/dlls/ntdll/ntdll.spec
+@@ -1571,4 +1571,5 @@
+ 
+ # Version
++@ cdecl wine_get_package_string() NTDLL_wine_get_package_string
+ @ cdecl wine_get_version() NTDLL_wine_get_version
+ @ cdecl wine_get_build_id() NTDLL_wine_get_build_id
+diff --git a/libs/wine/config.c b/libs/wine/config.c
+index 2a3314cbfda..d62e06594a7 100644
+--- a/libs/wine/config.c
++++ b/libs/wine/config.c
+@@ -505,4 +505,10 @@ const char *wine_get_version(void)
+ }
+ 
++/* return the standard package string */
++const char *wine_get_package_string(void)
++{
++    return PACKAGE_STRING;
++}
++
+ /* return the build id string */
+ const char *wine_get_build_id(void)
+diff --git a/libs/wine/wine.map b/libs/wine/wine.map
+index 4d48eb5f60a..1c6b502e23f 100644
+--- a/libs/wine/wine.map
++++ b/libs/wine/wine.map
+@@ -19,4 +19,5 @@ WINE_1.0
+     wine_get_server_dir;
+     wine_get_user_name;
++    wine_get_package_string;
+     wine_get_version;
+     wine_init;
+--

@@ -1,5 +1,7 @@
+..10065d2acd0a9e1e852a8151c95569b99d1b3294
+..17a826192ec458b1f090021db7f03e31fbfe7464 
+
 From 10065d2acd0a9e1e852a8151c95569b99d1b3294 Mon Sep 17 00:00:00 2001
-From 17a826192ec458b1f090021db7f03e31fbfe7464 Mon Sep 17 00:00:00 2001
 From: Ken Thomases <ken@codeweavers.com>
 Date: Mon, 27 Jun 2016 15:34:07 -0500
 Subject: [PATCH 1/1] winspool.drv: Include <cups/ppd.h> to fix building

@@ -1,0 +1,69 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..21ade8538de0a92ef4903f9b2ed0867bc266e30c
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From c13d58780f78393571dfdeb5b4952e3dcd7ded90 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:24 -0600
+Subject: [PATCH] sane.ds: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/sane.ds/sane_i.h    |  6 ++++--
+ dlls/sane.ds/sane_main.c | 19 +++++++++++++++++++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/sane.ds/sane_i.h b/dlls/sane.ds/sane_i.h
+index ae58159d596..868f5c6bd3a 100644
+--- a/dlls/sane.ds/sane_i.h
++++ b/dlls/sane.ds/sane_i.h
+@@ -37,5 +37,5 @@
+ 
+ #ifdef SONAME_LIBSANE
+-#define MAKE_FUNCPTR(f) typeof(f) * p##f DECLSPEC_HIDDEN;
++#define MAKE_FUNCPTR(f) extern typeof(f) * p##f DECLSPEC_HIDDEN;
+ MAKE_FUNCPTR(sane_init)
+ MAKE_FUNCPTR(sane_exit)
+@@ -85,5 +85,7 @@ struct tagActiveDS
+     BOOL                YResolutionSet;
+     TW_FIX32            defaultYResolution;
+-} activeDS DECLSPEC_HIDDEN;
++};
++
++extern struct tagActiveDS activeDS DECLSPEC_HIDDEN;
+ 
+ /* Helper functions */
+diff --git a/dlls/sane.ds/sane_main.c b/dlls/sane.ds/sane_main.c
+index 5c0f56f6c38..7d000799698 100644
+--- a/dlls/sane.ds/sane_main.c
++++ b/dlls/sane.ds/sane_main.c
+@@ -30,6 +30,25 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(twain);
++ 
++struct tagActiveDS activeDS;
+ 
+ #ifdef SONAME_LIBSANE
++#define MAKE_FUNCPTR(f) typeof(f) * p##f;
++MAKE_FUNCPTR(sane_init)
++MAKE_FUNCPTR(sane_exit)
++MAKE_FUNCPTR(sane_get_devices)
++MAKE_FUNCPTR(sane_open)
++MAKE_FUNCPTR(sane_close)
++MAKE_FUNCPTR(sane_get_option_descriptor)
++MAKE_FUNCPTR(sane_control_option)
++MAKE_FUNCPTR(sane_get_parameters)
++MAKE_FUNCPTR(sane_start)
++MAKE_FUNCPTR(sane_read)
++MAKE_FUNCPTR(sane_cancel)
++MAKE_FUNCPTR(sane_set_io_mode)
++MAKE_FUNCPTR(sane_get_select_fd)
++MAKE_FUNCPTR(sane_strstatus)
++#undef MAKE_FUNCPTR
++
+ 
+ HINSTANCE SANE_instance;
+--

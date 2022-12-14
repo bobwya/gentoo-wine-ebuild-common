@@ -1,0 +1,30 @@
+5c24d4497387befc3a8f08a41a33290d39926d4b..b9a464f76dc702b3fac3156c373e25434be60f65
+
+From bc51c5d589de709e1d393b58b0cc5985c78061ac Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:28 -0600
+Subject: [PATCH] webservices: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Hans Leidekker <hans@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/webservices/webservices_private.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/webservices/webservices_private.h b/dlls/webservices/webservices_private.h
+index 4894223a5f7..fbf7a7de68d 100644
+--- a/dlls/webservices/webservices_private.h
++++ b/dlls/webservices/webservices_private.h
+@@ -42,6 +42,6 @@ struct dictionary
+     ULONG              size;
+ };
+-struct dictionary dict_builtin DECLSPEC_HIDDEN;
+-const struct dictionary dict_builtin_static DECLSPEC_HIDDEN;
++extern struct dictionary dict_builtin DECLSPEC_HIDDEN;
++extern const struct dictionary dict_builtin_static DECLSPEC_HIDDEN;
+ 
+ ULONG format_bool( const BOOL *, unsigned char * ) DECLSPEC_HIDDEN;
+--

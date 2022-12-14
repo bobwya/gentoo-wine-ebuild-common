@@ -1,0 +1,82 @@
+4d2f2e80793610b2e134e3ee66caabffb8eae747..d7161a857652d80dd413613de1e92e8952beaa1f
+
+From 11b15054e74e3af62e4e851c272071dfd8c23775 Mon Sep 17 00:00:00 2001
+From: Hans Leidekker <hans@codeweavers.com>
+Date: Mon, 13 Dec 2021 11:24:02 +0100
+Subject: [PATCH] configure: Check for libldap instead of libldap_r.
+
+Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=52140
+Signed-off-by: Hans Leidekker <hans@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+--- configure    | 20 ++++++++++----------
+ configure.ac |  4 ++--
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+
+diff --git a/configure b/configure
+index 39c96a4e504..da322dca3f5 100755
+--- a/configure
++++ b/configure
+@@ -19470,5 +19470,5 @@ fi
+ fi
+ 
+-LDAP_LIBS=${LDAP_LIBS:-"-lldap_r -llber"}
++LDAP_LIBS=${LDAP_LIBS:-"-lldap -llber"}
+ printf "%s\n" "$as_me:${as_lineno-$LINENO}: openldap cflags: $LDAP_CFLAGS" >&5
+ printf "%s\n" "$as_me:${as_lineno-$LINENO}: openldap libs: $LDAP_LIBS" >&5
+@@ -19494,12 +19494,12 @@ fi
+ if test "x$ac_cv_type_LDAPSortKey" = xyes
+ then :
+-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_initialize in -lldap_r" >&5
+-printf %s "checking for ldap_initialize in -lldap_r... " >&6; }
+-if test ${ac_cv_lib_ldap_r_ldap_initialize+y}
++  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ldap_initialize in -lldap" >&5
++printf %s "checking for ldap_initialize in -lldap... " >&6; }
++if test ${ac_cv_lib_ldap_ldap_initialize+y}
+ then :
+   printf %s "(cached) " >&6
+ else $as_nop
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lldap_r $PTHREAD_LIBS $LDAP_LIBS $LIBS"
++LIBS="-lldap $PTHREAD_LIBS $LDAP_LIBS $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+@@ -19519,7 +19519,7 @@ _ACEOF
+ if ac_fn_c_try_link "$LINENO"
+ then :
+-  ac_cv_lib_ldap_r_ldap_initialize=yes
++  ac_cv_lib_ldap_ldap_initialize=yes
+ else $as_nop
+-  ac_cv_lib_ldap_r_ldap_initialize=no
++  ac_cv_lib_ldap_ldap_initialize=no
+ fi
+ rm -f core conftest.err conftest.$ac_objext conftest.beam \
+@@ -19527,7 +19527,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldap_r_ldap_initialize" >&5
+-printf "%s\n" "$ac_cv_lib_ldap_r_ldap_initialize" >&6; }
+-if test "x$ac_cv_lib_ldap_r_ldap_initialize" = xyes
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldap_ldap_initialize" >&5
++printf "%s\n" "$ac_cv_lib_ldap_ldap_initialize" >&6; }
++if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes
+ then :
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ber_init in -llber" >&5
+diff --git a/configure.ac b/configure.ac
+index ce401a47ebd..bc76310d9bd 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1989,10 +1989,10 @@ if test "x$with_ldap" != "xno"
+ then
+     dnl Actually there's no pkg-config support for ldap, but this way we can still override the flags
+-    WINE_PACKAGE_FLAGS(LDAP,[openldap],[-lldap_r -llber],,,
++    WINE_PACKAGE_FLAGS(LDAP,[openldap],[-lldap -llber],,,
+         [AC_CHECK_HEADERS([ldap.h lber.h])
+         if test "$ac_cv_header_ldap_h" = "yes" -a "$ac_cv_header_lber_h" = "yes"
+         then
+             AC_CHECK_TYPE(LDAPSortKey,
+-                [AC_CHECK_LIB(ldap_r, ldap_initialize,
++                [AC_CHECK_LIB(ldap, ldap_initialize,
+                     [AC_CHECK_LIB(lber, ber_init,
+                         [AC_DEFINE(HAVE_LDAP, 1, [Define if you have the OpenLDAP development environment])],
+--

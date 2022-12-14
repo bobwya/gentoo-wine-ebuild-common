@@ -1,0 +1,84 @@
+35afdf0f797e86c69d3ac90bba11b6249cb92fcc..928d1e64475f8936967943675754a0cacda48b3a
+483e26259ba0530a42be722976df63a489a0e6d9..a6557f640a806096c618c84b80400120e6c419df
+
+commit 2f03795cb0b0550f26c0040da64cc918c7a03539
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Sun Jan 29 11:56:51 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Sun Jan 29 11:56:51 2023 +0000
+
+winecfg: display full package string
+---
+
+ programs/winecfg/about.c    | 8 +++++---
+ programs/winecfg/resource.h | 1 -
+ programs/winecfg/winecfg.rc | 9 ++++-----
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+
+diff --git a/programs/winecfg/about.c b/programs/winecfg/about.c
+index e9f833c9bdb..290f8c0b26b 100644
+--- a/programs/winecfg/about.c
++++ b/programs/winecfg/about.c
+@@ -45,4 +45,6 @@ AboutDlgProc (HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+     RECT rcClient, rcRect;
+     char *owner, *org;
++    static CHAR package_string[256];
++
+ 
+     switch (uMsg)
+@@ -114,10 +116,11 @@ AboutDlgProc (HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+             static const WCHAR tahomaW[] = {'T','a','h','o','m','a',0};
+             titleFont = CreateFontW(
+-                -MulDiv(24, GetDeviceCaps(hDC, LOGPIXELSY), 72),
++                -MulDiv(16, GetDeviceCaps(hDC, LOGPIXELSY), 72),
+                 0, 0, 0, 0, FALSE, 0, 0, 0, 0, 0, 0, 0, tahomaW);
+             SendMessageW(hWnd, WM_SETFONT, (WPARAM)titleFont, TRUE);
+             SetWindowTextA(hWnd, PACKAGE_NAME);
+         }
+-        SetDlgItemTextA(hDlg, IDC_ABT_PANEL_TEXT, PACKAGE_VERSION);
++        lstrcpyA(package_string, PACKAGE_STRING);
++        SetDlgItemTextA(hDlg, IDC_ABT_TITLE_TEXT, package_string);
+ 
+         /* prepare the web link */
+@@ -171,5 +174,4 @@ AboutDlgProc (HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+             SetBkColor((HDC)wParam, GetSysColor(COLOR_WINDOW));
+             return (INT_PTR)GetSysColorBrush(COLOR_WINDOW);
+-        case IDC_ABT_PANEL_TEXT:
+         case IDC_ABT_LICENSE_TEXT:
+         case IDC_ABT_WEB_LINK:
+diff --git a/programs/winecfg/resource.h b/programs/winecfg/resource.h
+index 2760e92c000..46c6da26726 100644
+--- a/programs/winecfg/resource.h
++++ b/programs/winecfg/resource.h
+@@ -216,5 +216,4 @@
+ #define IDC_ABT_ORG                  8433
+ #define IDC_ABT_PANEL                8434
+-#define IDC_ABT_PANEL_TEXT           8435
+ #define IDC_ABT_TITLE_TEXT           8436
+ #define IDC_ABT_WEB_LINK             8437
+diff --git a/programs/winecfg/winecfg.rc b/programs/winecfg/winecfg.rc
+index 2e17c69f361..f26592924da 100644
+--- a/programs/winecfg/winecfg.rc
++++ b/programs/winecfg/winecfg.rc
+@@ -21,5 +21,5 @@
+  */
+ 
+-#include "config.h"   /* Needed for the PACKAGE_STRING definition */
++#include "config.h"
+ #include "resource.h"
+ 
+@@ -135,9 +135,8 @@ FONT 8, "MS Shell Dlg"
+ BEGIN
+     CONTROL         "", IDC_ABT_PANEL, "STATIC", SS_OWNERDRAW, 0, 0, 260, 140
+-    LTEXT           "",IDC_ABT_TITLE_TEXT,105,30,55,30
+-    LTEXT           "",IDC_ABT_PANEL_TEXT,160,43,140,8
+-    CONTROL         "",IDC_ABT_WEB_LINK,"SysLink", LWS_TRANSPARENT, 105,53,106,8
++    LTEXT           "",IDC_ABT_TITLE_TEXT,100,30,200,20
++    CONTROL         "",IDC_ABT_WEB_LINK,"SysLink", LWS_TRANSPARENT, 100,53,106,8
+     LTEXT           "This program is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.",
+-                    IDC_ABT_LICENSE_TEXT,105,64,145,66
++                    IDC_ABT_LICENSE_TEXT,100,64,145,66
+     GROUPBOX        "Windows registration information", IDC_STATIC, 15, 155, 230, 55
+     LTEXT           "&Owner:", IDC_STATIC, 22, 171, 40, 20
+--

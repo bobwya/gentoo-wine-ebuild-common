@@ -1,5 +1,7 @@
+..ca8a08606d3f0900b3f4aa8f2e6547882a22dba8
+..d133be20b15f0656430e48ff681fd6bab786528c 
+
 From ca8a08606d3f0900b3f4aa8f2e6547882a22dba8 Mon Sep 17 00:00:00 2001
-From d133be20b15f0656430e48ff681fd6bab786528c Mon Sep 17 00:00:00 2001
 From: Seong-ho Cho <darkcircle.0426@gmail.com>
 Date: Mon, 18 Apr 2016 04:25:38 +0900
 Subject: [PATCH] configure: Add AC_HEADER_MAJOR to find where major() is

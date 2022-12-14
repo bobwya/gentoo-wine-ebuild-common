@@ -1,0 +1,104 @@
+a301ba64d52e7e26c6e4d4cb1f7ffaed71490398..24b0a027ab32a359d2d5a5d5968501bd845e47a4
+
+From da42cf905d07613ad5243ddee16486369025eb6e Mon Sep 17 00:00:00 2001
+From: Henri Verbeet <hverbeet@codeweavers.com>
+Date: Wed, 8 May 2019 17:51:36 +0430
+Subject: [PATCH] wined3d: Store the glEnableWINE and glDisableWINE pointers in
+ the wined3d_gl_info structure.
+
+Signed-off-by: Henri Verbeet <hverbeet@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/wined3d/adapter_gl.c      | 4 ++--
+ dlls/wined3d/context.c         | 2 +-
+ dlls/wined3d/gl_compat.c       | 8 ++++----
+ dlls/wined3d/state.c           | 4 ++--
+ dlls/wined3d/wined3d_gl.h      | 2 --
+ dlls/wined3d/wined3d_private.h | 3 +++
+ 6 files changed, 12 insertions(+), 11 deletions(-)
+
+
+diff --git a/dlls/wined3d/adapter_gl.c b/dlls/wined3d/adapter_gl.c
+index af17df83cd0..5e7f3336098 100644
+--- a/dlls/wined3d/adapter_gl.c
++++ b/dlls/wined3d/adapter_gl.c
+@@ -4224,6 +4224,6 @@ BOOL wined3d_adapter_opengl_init(struct wined3d_adapter *adapter, DWORD wined3d_
+ #endif
+ 
+-    glEnableWINE = gl_info->gl_ops.gl.p_glEnable;
+-    glDisableWINE = gl_info->gl_ops.gl.p_glDisable;
++    gl_info->p_glEnableWINE = gl_info->gl_ops.gl.p_glEnable;
++    gl_info->p_glDisableWINE = gl_info->gl_ops.gl.p_glDisable;
+ 
+     if (!wined3d_caps_gl_ctx_create(adapter, &caps_gl_ctx))
+diff --git a/dlls/wined3d/context.c b/dlls/wined3d/context.c
+index 83e35638bc6..8d4cdda508f 100644
+--- a/dlls/wined3d/context.c
++++ b/dlls/wined3d/context.c
+@@ -2991,5 +2991,5 @@ void context_apply_ffp_blit_state(struct wined3d_context *context, const struct
+     gl_info->gl_ops.gl.p_glDisable(GL_LIGHTING);
+     context_invalidate_state(context, STATE_RENDER(WINED3D_RS_LIGHTING));
+-    glDisableWINE(GL_FOG);
++    gl_info->p_glDisableWINE(GL_FOG);
+     context_invalidate_state(context, STATE_RENDER(WINED3D_RS_FOGENABLE));
+ 
+diff --git a/dlls/wined3d/gl_compat.c b/dlls/wined3d/gl_compat.c
+index 7e6b5101bc4..a2fb09c39e1 100644
+--- a/dlls/wined3d/gl_compat.c
++++ b/dlls/wined3d/gl_compat.c
+@@ -438,8 +438,8 @@ void install_gl_compat_wrapper(struct wined3d_gl_info *gl_info, enum wined3d_gl_
+             old_fogcoord_glFogfv = gl_info->gl_ops.gl.p_glFogfv;
+             gl_info->gl_ops.gl.p_glFogfv = wine_glFogfv;
+-            old_fogcoord_glEnable = glEnableWINE;
+-            glEnableWINE = wine_glEnable;
+-            old_fogcoord_glDisable = glDisableWINE;
+-            glDisableWINE = wine_glDisable;
++            old_fogcoord_glEnable = gl_info->p_glEnableWINE;
++            gl_info->p_glEnableWINE = wine_glEnable;
++            old_fogcoord_glDisable = gl_info->p_glDisableWINE;
++            gl_info->p_glDisableWINE = wine_glDisable;
+ 
+             old_fogcoord_glVertex4f = gl_info->gl_ops.gl.p_glVertex4f;
+diff --git a/dlls/wined3d/state.c b/dlls/wined3d/state.c
+index 3b2f84538db..bb30f14f543 100644
+--- a/dlls/wined3d/state.c
++++ b/dlls/wined3d/state.c
+@@ -1127,5 +1127,5 @@ void state_fog_fragpart(struct wined3d_context *context, const struct wined3d_st
+     {
+         /* No fog? Disable it, and we're done :-) */
+-        glDisableWINE(GL_FOG);
++        gl_info->p_glDisableWINE(GL_FOG);
+         checkGLcall("glDisable GL_FOG");
+         return;
+@@ -1264,5 +1264,5 @@ void state_fog_fragpart(struct wined3d_context *context, const struct wined3d_st
+     }
+ 
+-    glEnableWINE(GL_FOG);
++    gl_info->p_glEnableWINE(GL_FOG);
+     checkGLcall("glEnable GL_FOG");
+     if (new_source != context->fog_source || fogstart == fogend)
+diff --git a/dlls/wined3d/wined3d_gl.h b/dlls/wined3d/wined3d_gl.h
+index 525c29803a5..37ff494f7be 100644
+--- a/dlls/wined3d/wined3d_gl.h
++++ b/dlls/wined3d/wined3d_gl.h
+@@ -29,6 +29,4 @@
+ #define GL_COMPRESSED_LUMINANCE_ALPHA_3DC_ATI 0x8837  /* not in the gl spec */
+ 
+-void (WINE_GLAPI *glDisableWINE)(GLenum cap) DECLSPEC_HIDDEN;
+-void (WINE_GLAPI *glEnableWINE)(GLenum cap) DECLSPEC_HIDDEN;
+ 
+ /* OpenGL extensions. */
+diff --git a/dlls/wined3d/wined3d_private.h b/dlls/wined3d/wined3d_private.h
+index 70841683e5b..ba2af7689cb 100644
+--- a/dlls/wined3d/wined3d_private.h
++++ b/dlls/wined3d/wined3d_private.h
+@@ -2600,4 +2600,7 @@ struct wined3d_gl_info
+     struct opengl_funcs gl_ops;
+     struct wined3d_fbo_ops fbo_ops;
++
++    void (WINE_GLAPI *p_glDisableWINE)(GLenum cap);
++    void (WINE_GLAPI *p_glEnableWINE)(GLenum cap);
+ };
+ 
+--

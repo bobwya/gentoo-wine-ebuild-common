@@ -1,0 +1,61 @@
+7ab14aba1a1852724ef1aaa408c8bac6805919fb..8e4f7ddcef4a9b2913569e96431fe53c1fb20623
+d969d02e21eb9f128d21a9209f62ac6dfbae236f..
+
+From 22bab0394c2373d40b76349e5ea6dbe595fe4154 Mon Sep 17 00:00:00 2001
+From: Robert Walker <bob.mt.wya@gmail.com>
+Date: Tue, 28 Feb 2023 13:12:02 +0000
+Subject: [PATCH] winegcc: fix multilib build for gentoo
+
+See: https://bugs.gentoo.org/260726
+See: https://bugs.winehq.org/show_bug.cgi?id=17498
+---
+
+ tools/tools.h           | 3 +++
+ tools/winebuild/main.c  | 4 ++++
+ tools/winegcc/winegcc.c | 4 ++++
+ 3 files changed, 11 insertions(+)
+
+
+diff --git a/tools/tools.h b/tools/tools.h
+index 1065d25c6d6..fc95891b304 100644
+--- a/tools/tools.h
++++ b/tools/tools.h
+@@ -354,8 +354,11 @@ static inline struct target get_default_target(void)
+ {
+     struct target target;
++#undef FORCE_POINTER_SIZE
+ #ifdef __i386__
+     target.cpu = CPU_i386;
++#define FORCE_POINTER_SIZE
+ #elif defined(__x86_64__)
+     target.cpu = CPU_x86_64;
++#define FORCE_POINTER_SIZE
+ #elif defined(__arm__)
+     target.cpu = CPU_ARM;
+diff --git a/tools/winebuild/main.c b/tools/winebuild/main.c
+index 77f13b0fa8a..ea26d8b948c 100644
+--- a/tools/winebuild/main.c
++++ b/tools/winebuild/main.c
+@@ -608,4 +608,8 @@ int main(int argc, char **argv)
+     signal( SIGINT, exit_on_signal );
+ 
++#ifdef FORCE_POINTER_SIZE
++    force_pointer_size = sizeof(size_t);
++#endif
++
+     target = init_argv0_target( argv[0] );
+     if (target.platform == PLATFORM_CYGWIN) target.platform = PLATFORM_MINGW;
+diff --git a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
+index 8644afe7535..682bd852c3d 100644
+--- a/tools/winegcc/winegcc.c
++++ b/tools/winegcc/winegcc.c
+@@ -1533,4 +1533,8 @@ int main(int argc, char **argv)
+     opts.pic = 1;
+ 
++#ifdef FORCE_POINTER_SIZE
++    opts.force_pointer_size = sizeof(size_t);
++#endif
++
+     /* determine the processor type */
+     if (strendswith(argv[0], "winecpp")) opts.processor = proc_cpp;
+--

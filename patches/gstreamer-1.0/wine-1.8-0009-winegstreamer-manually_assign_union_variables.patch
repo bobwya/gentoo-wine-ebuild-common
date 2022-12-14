@@ -1,0 +1,36 @@
+..4c8125601ba8cdfdf600a8876e2c58d6fa6a3276
+
+From 4c8125601ba8cdfdf600a8876e2c58d6fa6a3276 Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Tue, 16 Feb 2016 06:42:54 +0100
+Subject: [PATCH] winegstreamer: Manually assign union variables.
+
+Signed-off-by: Sebastian Lackner <sebastian@fds-team.de>
+Signed-off-by: Andrew Eikum <aeikum@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/winegstreamer/gst_cbs.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/winegstreamer/gst_cbs.c b/dlls/winegstreamer/gst_cbs.c
+index c851798..96325d0 100644
+--- a/dlls/winegstreamer/gst_cbs.c
++++ b/dlls/winegstreamer/gst_cbs.c
+@@ -286,9 +286,11 @@ void Gstreamer_transform_pad_added_wrapper(GstElement *filter, GstPad *pad, gpoi
+ 
+ gboolean query_sink_wrapper(GstPad *pad, GstObject *parent, GstQuery *query)
+ {
+-    struct cb_data cbdata = { QUERY_SINK,
+-        { .query_sink_data = {pad, parent, query} }
+-    };
++    struct cb_data cbdata = { QUERY_SINK };
++
++    cbdata.u.query_sink_data.pad = pad;
++    cbdata.u.query_sink_data.parent = parent;
++    cbdata.u.query_sink_data.query = query;
+ 
+     call_cb(&cbdata);
+ 
+-- 
+2.1.4
+

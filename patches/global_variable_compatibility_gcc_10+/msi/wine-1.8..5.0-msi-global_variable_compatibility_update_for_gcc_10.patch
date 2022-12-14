@@ -1,0 +1,42 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..a09c08f17a1ace1205e4c579c4f08b548258d539
+7483a38d4c4eb823362f093a3e721335b5854365..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From cc7f698b8245a48669d248569e7589ff824f2c70 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:23 -0600
+Subject: [PATCH] msi: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Hans Leidekker <hans@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/msi/msi.c     | 2 ++
+ dlls/msi/msipriv.h | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/msi/msi.c b/dlls/msi/msi.c
+index ecc3e94e372..97b3527d25f 100644
+--- a/dlls/msi/msi.c
++++ b/dlls/msi/msi.c
+@@ -51,4 +51,6 @@
+ WINE_DEFAULT_DEBUG_CHANNEL(msi);
+ 
++BOOL is_wow64;
++
+ static const WCHAR installerW[] = {'\\','I','n','s','t','a','l','l','e','r',0};
+ 
+diff --git a/dlls/msi/msipriv.h b/dlls/msi/msipriv.h
+index d457a54c737..7d9d7627aca 100644
+--- a/dlls/msi/msipriv.h
++++ b/dlls/msi/msipriv.h
+@@ -40,5 +40,5 @@
+ 
+ static const BOOL is_64bit = sizeof(void *) > sizeof(int);
+-BOOL is_wow64 DECLSPEC_HIDDEN;
++extern BOOL is_wow64 DECLSPEC_HIDDEN;
+ 
+ #define MSI_DATASIZEMASK 0x00ff
+--

@@ -1,5 +1,7 @@
+..8db46756ca91695c7242e05d24a3e5ec4340c10c 
+..7f1d6a8ee2c72409f4f840df23401c9702adee5e
+ 
 From 8db46756ca91695c7242e05d24a3e5ec4340c10c Mon Apr 19 20:08:48 2021
-From 7f1d6a8ee2c72409f4f840df23401c9702adee5e Mon Sep 17 00:00:00 2001
 From: Hans Leidekker <hans@codeweavers.com>
 Date: Wed, 27 Oct 2021 19:23:14 +0200
 Subject: [PATCH] wldap32: Rename ldap_connect() to avoid a name conflict.

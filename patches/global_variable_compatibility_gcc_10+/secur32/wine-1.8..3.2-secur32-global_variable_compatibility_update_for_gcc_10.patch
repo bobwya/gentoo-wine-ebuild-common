@@ -1,0 +1,32 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..77a32d5e4a2d47c4cc34af05d43b0e572a46c448
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From 93888fbb3e4d973f5878a0aab16a9d64fb73a764 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:25 -0600
+Subject: [PATCH] secur32: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/secur32/secur32_priv.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/secur32/secur32_priv.h b/dlls/secur32/secur32_priv.h
+index 9985cac8b8c..65ccb0080d4 100644
+--- a/dlls/secur32/secur32_priv.h
++++ b/dlls/secur32/secur32_priv.h
+@@ -205,6 +205,6 @@ SECURITY_STATUS SEC_ENTRY ntlm_MakeSignature(PCtxtHandle, ULONG, PSecBufferDesc,
+ SECURITY_STATUS SEC_ENTRY ntlm_VerifySignature(PCtxtHandle, PSecBufferDesc, ULONG, PULONG) DECLSPEC_HIDDEN;
+ 
+-SecPkgInfoW *ntlm_package_infoW DECLSPEC_HIDDEN;
+-SecPkgInfoA *ntlm_package_infoA DECLSPEC_HIDDEN;
++extern SecPkgInfoW *ntlm_package_infoW DECLSPEC_HIDDEN;
++extern SecPkgInfoA *ntlm_package_infoA DECLSPEC_HIDDEN;
+ 
+ /* schannel internal interface */
+--

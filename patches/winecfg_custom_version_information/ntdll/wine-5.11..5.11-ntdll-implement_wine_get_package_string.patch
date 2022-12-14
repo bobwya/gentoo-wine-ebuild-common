@@ -1,0 +1,64 @@
+3df16c0b70f734f5260bfde0f68239976d6a5842..8885a51347a768d8a9125d573963d12ac67d4715
+
+commit 2b16e1fa6161dff3e8f38b11327842b24733fc7f
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Tue Jan 31 15:58:00 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Tue Jan 31 16:03:33 2023 +0000
+
+ntdll: add function wine_get_package_string()
+---
+
+ dlls/ntdll/ntdll.spec | 1 +
+ dlls/ntdll/unixlib.h  | 1 +
+ libs/wine/config.c    | 6 ++++++
+ libs/wine/wine.map    | 1 +
+ 4 files changed, 9 insertions(+)
+
+
+diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
+index 0b1e91ddc9e..93fda3bb464 100644
+--- a/dlls/ntdll/ntdll.spec
++++ b/dlls/ntdll/ntdll.spec
+@@ -1596,4 +1596,5 @@
+ 
+ # Version
++@ cdecl wine_get_package_string()
+ @ cdecl wine_get_version()
+ @ cdecl wine_get_build_id()
+diff --git a/dlls/ntdll/unixlib.h b/dlls/ntdll/unixlib.h
+index 7e73400dae2..0bdc202685b 100644
+--- a/dlls/ntdll/unixlib.h
++++ b/dlls/ntdll/unixlib.h
+@@ -306,4 +306,5 @@ struct unix_funcs
+     void          (CDECL *get_unix_codepage)( CPTABLEINFO *table );
+     void          (CDECL *get_locales)( WCHAR *sys, WCHAR *user );
++    const char *  (CDECL *get_package_string)(void);
+     const char *  (CDECL *get_version)(void);
+     const char *  (CDECL *get_build_id)(void);
+diff --git a/libs/wine/config.c b/libs/wine/config.c
+index f5b4c0de9af..df4baf862d0 100644
+--- a/libs/wine/config.c
++++ b/libs/wine/config.c
+@@ -516,4 +516,10 @@ const char *wine_get_version(void)
+ }
+ 
++/* return the standard package string */
++const char *wine_get_package_string(void)
++{
++    return PACKAGE_STRING;
++}
++
+ /* return the build id string */
+ const char *wine_get_build_id(void)
+diff --git a/libs/wine/wine.map b/libs/wine/wine.map
+index 1143b129734..3853d7da511 100644
+--- a/libs/wine/wine.map
++++ b/libs/wine/wine.map
+@@ -13,4 +13,5 @@ WINE_1.0
+     wine_exec_wine_binary;
+     wine_get_build_id;
++    wine_get_package_string;
+     wine_get_version;
+     wine_init;
+--

@@ -1,0 +1,1765 @@
+329ef8cebd47abd756df72accd15b8273fca1d5e..329ef8cebd47abd756df72accd15b8273fca1d5e
+
+From 9afc341c4f043240f0dc3de6351550b03d24b131 Mon Sep 17 00:00:00 2001
+From: Martin Liska <mliska@suse.cz>
+Date: Mon, 10 Jun 2019 10:57:32 +0200
+Subject: [PATCH] include: Avoid compound literals for WCHAR strings.
+
+Starting from GCC 9, compound liferal's scope has changed:
+https://www.gnu.org/software/gcc/gcc-9/porting_to.html#complit
+
+Signed-off-by: Martin Liska <mliska@suse.cz>
+Signed-off-by: Marcus Meissner <meissner@suse.de>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/wldap32/winldap_private.h |   9 +--
+ include/bcrypt.h               | 102 ++++++++++++++++----------------
+ include/commctrl.h             |  75 +++++++++---------------
+ include/commdlg.h              |  21 +++----
+ include/d3dcompiler.h          |   2 +-
+ include/ddeml.h                |  16 +++---
+ include/ddk/mountmgr.h         |   4 +-
+ include/dpaddr.h               |  66 ++++++++++-----------
+ include/lmaccess.h             |   8 +--
+ include/msacm.h                |   9 +--
+ include/ntsecapi.h             |   2 +-
+ include/oledlg.h               |  18 +++---
+ include/prsht.h                |   3 +-
+ include/richedit.h             |   4 +-
+ include/schannel.h             |  18 ++----
+ include/softpub.h              |  57 ++++++------------
+ include/uxtheme.h              |   8 +--
+ include/vsstyle.h              | 108 +++++++++++++++++-----------------
+ include/vssym32.h              |  22 +++----
+ include/wincrypt.h             | 128 ++++++++++++-----------------------------
+ include/winnls.h               |   4 +-
+ include/winnt.h                |  58 +++++++++----------
+ include/winspool.h             |  58 +++++++++----------
+ include/winsvc.h               |   4 +-
+ include/wintrust.h             |   3 +-
+ 25 files changed, 345 insertions(+), 462 deletions(-)
+
+
+diff --git a/dlls/wldap32/winldap_private.h b/dlls/wldap32/winldap_private.h
+index a19ceb1b353..bc0460f5930 100644
+--- a/dlls/wldap32/winldap_private.h
++++ b/dlls/wldap32/winldap_private.h
+@@ -190,14 +190,11 @@ typedef struct WLDAP32_berval
+ 
+ #define LDAP_PAGED_RESULT_OID_STRING "1.2.840.113556.1.4.319"
+-#define LDAP_PAGED_RESULT_OID_STRING_W (const WCHAR []){'1','.','2','.', \
+-        '8','4','0','.','1','1','3','5','5','6','.','1','.','4','.','3','1','9',0}
++static const WCHAR LDAP_PAGED_RESULT_OID_STRING_W[] = {'1','.','2','.','8','4','0','.','1','1','3','5','5','6','.','1','.','4','.','3','1','9',0};
+ 
+ #define LDAP_SERVER_RESP_SORT_OID "1.2.840.113556.1.4.474"
+-#define LDAP_SERVER_RESP_SORT_OID_W (const WCHAR []){'1','.','2','.', \
+-        '8','4','0','.','1','1','3','5','5','6','.','1','.','4','.','4','7','4',0}
++static const WCHAR LDAP_SERVER_RESP_SORT_OID_W[] = {'1','.','2','.','8','4','0','.','1','1','3','5','5','6','.','1','.','4','.','4','7','4',0};
+ 
+ #define LDAP_CONTROL_VLVRESPONSE "2.16.840.1.113730.3.4.10"
+-#define LDAP_CONTROL_VLVRESPONSE_W (const WCHAR []){'2','.','1','6','.', \
+-        '8','4','0','.','1','.','1','1','3','7','3','0','.','3','.','4','.','1','0',0}
++static const WCHAR LDAP_CONTROL_VLVRESPONSE_W[] = {'2','.','1','6','.','8','4','0','.','1','.','1','1','3','7','3','0','.','3','.','4','.','1','0',0};
+ 
+ typedef struct ldapcontrolA
+diff --git a/include/bcrypt.h b/include/bcrypt.h
+index 919da6586bc..778c953197d 100644
+--- a/include/bcrypt.h
++++ b/include/bcrypt.h
+@@ -41,56 +41,54 @@ typedef LONG NTSTATUS;
+ #endif
+ 
+-#define BCRYPT_ALGORITHM_NAME (const WCHAR []){'A','l','g','o','r','i','t','h','m','N','a','m','e',0}
+-#define BCRYPT_AUTH_TAG_LENGTH (const WCHAR []){'A','u','t','h','T','a','g','L','e','n','g','t','h',0}
+-#define BCRYPT_BLOCK_LENGTH (const WCHAR []){'B','l','o','c','k','L','e','n','g','t','h',0}
+-#define BCRYPT_BLOCK_SIZE_LIST (const WCHAR []){'B','l','o','c','k','S','i','z','e','L','i','s','t',0}
+-#define BCRYPT_CHAINING_MODE (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e',0}
+-#define BCRYPT_EFFECTIVE_KEY_LENGTH (const WCHAR []){'E','f','f','e','c','t','i','v','e','K','e','y','L','e','n','g','t','h',0}
+-#define BCRYPT_HASH_BLOCK_LENGTH (const WCHAR []){'H','a','s','h','B','l','o','c','k','L','e','n','g','t','h',0}
+-#define BCRYPT_HASH_LENGTH (const WCHAR []){'H','a','s','h','D','i','g','e','s','t','L','e','n','g','t','h',0}
+-#define BCRYPT_HASH_OID_LIST (const WCHAR []){'H','a','s','h','O','I','D','L','i','s','t',0}
+-#define BCRYPT_KEY_LENGTH (const WCHAR []){'K','e','y','L','e','n','g','t','h',0}
+-#define BCRYPT_KEY_LENGTHS (const WCHAR []){'K','e','y','L','e','n','g','t','h','s',0}
+-#define BCRYPT_KEY_OBJECT_LENGTH (const WCHAR []){'K','e','y','O','b','j','e','c','t','L','e','n','g','t','h',0}
+-#define BCRYPT_KEY_STRENGTH (const WCHAR []){'K','e','y','S','t','r','e','n','g','t','h',0}
+-#define BCRYPT_OBJECT_LENGTH (const WCHAR []){'O','b','j','e','c','t','L','e','n','g','t','h',0}
+-#define BCRYPT_PADDING_SCHEMES (const WCHAR []){'P','a','d','d','i','n','g','S','c','h','e','m','e','s',0}
+-#define BCRYPT_PROVIDER_HANDLE (const WCHAR []){'P','r','o','v','i','d','e','r','H','a','n','d','l','e',0}
+-#define BCRYPT_SIGNATURE_LENGTH (const WCHAR []){'S','i','g','n','a','t','u','r','e','L','e','n','g','t','h',0}
+-
+-#define BCRYPT_OPAQUE_KEY_BLOB   (const WCHAR []){'O','p','a','q','u','e','K','e','y','B','l','o','b',0}
+-#define BCRYPT_KEY_DATA_BLOB     (const WCHAR []){'K','e','y','D','a','t','a','B','l','o','b',0}
+-#define BCRYPT_AES_WRAP_KEY_BLOB (const WCHAR []){'R','f','c','3','5','6','5','K','e','y','W','r','a','p','B','l','o','b',0}
+-#define BCRYPT_ECCPUBLIC_BLOB    (const WCHAR []){'E','C','C','P','U','B','L','I','C','B','L','O','B',0}
+-#define BCRYPT_ECCPRIVATE_BLOB   (const WCHAR []){'E','C','C','P','R','I','V','A','T','E','B','L','O','B',0}
+-#define BCRYPT_RSAPUBLIC_BLOB    (const WCHAR []){'R','S','A','P','U','B','L','I','C','B','L','O','B',0}
+-#define BCRYPT_RSAPRIVATE_BLOB   (const WCHAR []){'R','S','A','P','R','I','V','A','T','E','B','L','O','B',0}
+-
+-#define MS_PRIMITIVE_PROVIDER (const WCHAR [])\
+-    {'M','i','c','r','o','s','o','f','t',' ','P','r','i','m','i','t','i','v','e',' ','P','r','o','v','i','d','e','r',0}
+-#define MS_PLATFORM_CRYPTO_PROVIDER (const WCHAR [])\
+-    {'M','i','c','r','o','s','o','f','t',' ','P','l','a','t','f','o','r','m',' ','C','r','y','p','t','o',' ','P','r','o','v','i','d','e','r',0}
+-
+-#define BCRYPT_AES_ALGORITHM        (const WCHAR []){'A','E','S',0}
+-#define BCRYPT_MD2_ALGORITHM        (const WCHAR []){'M','D','2',0}
+-#define BCRYPT_MD4_ALGORITHM        (const WCHAR []){'M','D','4',0}
+-#define BCRYPT_MD5_ALGORITHM        (const WCHAR []){'M','D','5',0}
+-#define BCRYPT_RNG_ALGORITHM        (const WCHAR []){'R','N','G',0}
+-#define BCRYPT_RSA_ALGORITHM        (const WCHAR []){'R','S','A',0}
+-#define BCRYPT_SHA1_ALGORITHM       (const WCHAR []){'S','H','A','1',0}
+-#define BCRYPT_SHA256_ALGORITHM     (const WCHAR []){'S','H','A','2','5','6',0}
+-#define BCRYPT_SHA384_ALGORITHM     (const WCHAR []){'S','H','A','3','8','4',0}
+-#define BCRYPT_SHA512_ALGORITHM     (const WCHAR []){'S','H','A','5','1','2',0}
+-#define BCRYPT_ECDH_P256_ALGORITHM  (const WCHAR []){'E','C','D','H','_','P','2','5','6',0}
+-#define BCRYPT_ECDSA_P256_ALGORITHM (const WCHAR []){'E','C','D','S','A','_','P','2','5','6',0}
+-#define BCRYPT_ECDSA_P384_ALGORITHM (const WCHAR []){'E','C','D','S','A','_','P','3','8','4',0}
+-#define BCRYPT_ECDSA_P521_ALGORITHM (const WCHAR []){'E','C','D','S','A','_','P','5','2','1',0}
+-
+-#define BCRYPT_CHAIN_MODE_NA        (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e','N','/','A',0}
+-#define BCRYPT_CHAIN_MODE_CBC       (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e','C','B','C',0}
+-#define BCRYPT_CHAIN_MODE_ECB       (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e','E','C','B',0}
+-#define BCRYPT_CHAIN_MODE_CFB       (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e','C','F','B',0}
+-#define BCRYPT_CHAIN_MODE_CCM       (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e','C','C','M',0}
+-#define BCRYPT_CHAIN_MODE_GCM       (const WCHAR []){'C','h','a','i','n','i','n','g','M','o','d','e','G','C','M',0}
++static const WCHAR BCRYPT_ALGORITHM_NAME[] = {'A','l','g','o','r','i','t','h','m','N','a','m','e',0};
++static const WCHAR BCRYPT_AUTH_TAG_LENGTH[] = {'A','u','t','h','T','a','g','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_BLOCK_LENGTH[] = {'B','l','o','c','k','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_BLOCK_SIZE_LIST[] = {'B','l','o','c','k','S','i','z','e','L','i','s','t',0};
++static const WCHAR BCRYPT_CHAINING_MODE[] = {'C','h','a','i','n','i','n','g','M','o','d','e',0};
++static const WCHAR BCRYPT_EFFECTIVE_KEY_LENGTH[] = {'E','f','f','e','c','t','i','v','e','K','e','y','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_HASH_BLOCK_LENGTH[] = {'H','a','s','h','B','l','o','c','k','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_HASH_LENGTH[] = {'H','a','s','h','D','i','g','e','s','t','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_HASH_OID_LIST[] = {'H','a','s','h','O','I','D','L','i','s','t',0};
++static const WCHAR BCRYPT_KEY_LENGTH[] = {'K','e','y','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_KEY_LENGTHS[] = {'K','e','y','L','e','n','g','t','h','s',0};
++static const WCHAR BCRYPT_KEY_OBJECT_LENGTH[] = {'K','e','y','O','b','j','e','c','t','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_KEY_STRENGTH[] = {'K','e','y','S','t','r','e','n','g','t','h',0};
++static const WCHAR BCRYPT_OBJECT_LENGTH[] = {'O','b','j','e','c','t','L','e','n','g','t','h',0};
++static const WCHAR BCRYPT_PADDING_SCHEMES[] = {'P','a','d','d','i','n','g','S','c','h','e','m','e','s',0};
++static const WCHAR BCRYPT_PROVIDER_HANDLE[] = {'P','r','o','v','i','d','e','r','H','a','n','d','l','e',0};
++static const WCHAR BCRYPT_SIGNATURE_LENGTH[] = {'S','i','g','n','a','t','u','r','e','L','e','n','g','t','h',0};
++
++static const WCHAR BCRYPT_OPAQUE_KEY_BLOB[] = {'O','p','a','q','u','e','K','e','y','B','l','o','b',0};
++static const WCHAR BCRYPT_KEY_DATA_BLOB[] = {'K','e','y','D','a','t','a','B','l','o','b',0};
++static const WCHAR BCRYPT_AES_WRAP_KEY_BLOB[] = {'R','f','c','3','5','6','5','K','e','y','W','r','a','p','B','l','o','b',0};
++static const WCHAR BCRYPT_ECCPUBLIC_BLOB[] = {'E','C','C','P','U','B','L','I','C','B','L','O','B',0};
++static const WCHAR BCRYPT_ECCPRIVATE_BLOB[] = {'E','C','C','P','R','I','V','A','T','E','B','L','O','B',0};
++static const WCHAR BCRYPT_RSAPUBLIC_BLOB[] = {'R','S','A','P','U','B','L','I','C','B','L','O','B',0};
++static const WCHAR BCRYPT_RSAPRIVATE_BLOB[] = {'R','S','A','P','R','I','V','A','T','E','B','L','O','B',0};
++
++static const WCHAR MS_PRIMITIVE_PROVIDER[] = {'M','i','c','r','o','s','o','f','t',' ','P','r','i','m','i','t','i','v','e',' ','P','r','o','v','i','d','e','r',0};
++static const WCHAR MS_PLATFORM_CRYPTO_PROVIDER[] = {'M','i','c','r','o','s','o','f','t',' ','P','l','a','t','f','o','r','m',' ','C','r','y','p','t','o',' ','P','r','o','v','i','d','e','r',0};
++
++static const WCHAR BCRYPT_AES_ALGORITHM[] = {'A','E','S',0};
++static const WCHAR BCRYPT_MD2_ALGORITHM[] = {'M','D','2',0};
++static const WCHAR BCRYPT_MD4_ALGORITHM[] = {'M','D','4',0};
++static const WCHAR BCRYPT_MD5_ALGORITHM[] = {'M','D','5',0};
++static const WCHAR BCRYPT_RNG_ALGORITHM[] = {'R','N','G',0};
++static const WCHAR BCRYPT_RSA_ALGORITHM[] = {'R','S','A',0};
++static const WCHAR BCRYPT_SHA1_ALGORITHM[] = {'S','H','A','1',0};
++static const WCHAR BCRYPT_SHA256_ALGORITHM[] = {'S','H','A','2','5','6',0};
++static const WCHAR BCRYPT_SHA384_ALGORITHM[] = {'S','H','A','3','8','4',0};
++static const WCHAR BCRYPT_SHA512_ALGORITHM[] = {'S','H','A','5','1','2',0};
++static const WCHAR BCRYPT_ECDH_P256_ALGORITHM[] = {'E','C','D','H','_','P','2','5','6',0};
++static const WCHAR BCRYPT_ECDSA_P256_ALGORITHM[] = {'E','C','D','S','A','_','P','2','5','6',0};
++static const WCHAR BCRYPT_ECDSA_P384_ALGORITHM[] = {'E','C','D','S','A','_','P','3','8','4',0};
++static const WCHAR BCRYPT_ECDSA_P521_ALGORITHM[] = {'E','C','D','S','A','_','P','5','2','1',0};
++
++static const WCHAR BCRYPT_CHAIN_MODE_NA[] = {'C','h','a','i','n','i','n','g','M','o','d','e','N','/','A',0};
++static const WCHAR BCRYPT_CHAIN_MODE_CBC[] = {'C','h','a','i','n','i','n','g','M','o','d','e','C','B','C',0};
++static const WCHAR BCRYPT_CHAIN_MODE_ECB[] = {'C','h','a','i','n','i','n','g','M','o','d','e','E','C','B',0};
++static const WCHAR BCRYPT_CHAIN_MODE_CFB[] = {'C','h','a','i','n','i','n','g','M','o','d','e','C','F','B',0};
++static const WCHAR BCRYPT_CHAIN_MODE_CCM[] = {'C','h','a','i','n','i','n','g','M','o','d','e','C','C','M',0};
++static const WCHAR BCRYPT_CHAIN_MODE_GCM[] = {'C','h','a','i','n','i','n','g','M','o','d','e','G','C','M',0};
+ 
+ #define BCRYPT_ECDSA_PUBLIC_P256_MAGIC  0x31534345
+diff --git a/include/commctrl.h b/include/commctrl.h
+index 73bb9fa3ada..f6aacd36c82 100644
+--- a/include/commctrl.h
++++ b/include/commctrl.h
+@@ -279,6 +279,5 @@ typedef struct tagNMTTCUSTOMDRAW
+ #define STATUSCLASSNAMEA	"msctls_statusbar32"
+ #if defined(__GNUC__)
+-# define STATUSCLASSNAMEW (const WCHAR []){ 'm','s','c','t','l','s','_', \
+-  's','t','a','t','u','s','b','a','r','3','2',0 }
++static const WCHAR STATUSCLASSNAMEW[] = { 'm','s','c','t','l','s','_','s','t','a','t','u','s','b','a','r','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define STATUSCLASSNAMEW       L"msctls_statusbar32"
+@@ -368,6 +367,5 @@ typedef struct tagDRAGLISTINFO
+ #define DRAGLISTMSGSTRINGA      "commctrl_DragListMsg"
+ #if defined(__GNUC__)
+-# define DRAGLISTMSGSTRINGW (const WCHAR []){ 'c','o','m','m','c','t','r','l', \
+-  '_','D','r','a','g','L','i','s','t','M','s','g',0 }
++static const WCHAR DRAGLISTMSGSTRINGW[] = { 'c','o','m','m','c','t','r','l','_','D','r','a','g','L','i','s','t','M','s','g',0 };
+ #elif defined(_MSC_VER)
+ # define DRAGLISTMSGSTRINGW     L"commctrl_DragListMsg"
+@@ -387,6 +385,5 @@ INT  WINAPI LBItemFromPt (HWND, POINT, BOOL);
+ #define UPDOWN_CLASSA           "msctls_updown32"
+ #if defined(__GNUC__)
+-# define UPDOWN_CLASSW (const WCHAR []){ 'm','s','c','t','l','s','_', \
+-  'u','p','d','o','w','n','3','2',0 }
++static const WCHAR UPDOWN_CLASSW[] = { 'm','s','c','t','l','s','_','u','p','d','o','w','n','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define UPDOWN_CLASSW          L"msctls_updown32"
+@@ -447,6 +444,5 @@ HWND WINAPI CreateUpDownControl (DWORD, INT, INT, INT, INT,
+ #define PROGRESS_CLASSA   "msctls_progress32"
+ #if defined(__GNUC__)
+-# define PROGRESS_CLASSW (const WCHAR []){ 'm','s','c','t','l','s','_', \
+-  'p','r','o','g','r','e','s','s','3','2',0 }
++static const WCHAR PROGRESS_CLASSW[] = { 'm','s','c','t','l','s','_','p','r','o','g','r','e','s','s','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define PROGRESS_CLASSW  L"msctls_progress32"
+@@ -657,6 +653,5 @@ BOOL WINAPI _TrackMouseEvent(LPTRACKMOUSEEVENT lpEventTrack);
+ #define FLATSB_CLASSA         "flatsb_class32"
+ #if defined(__GNUC__)
+-# define FLATSB_CLASSW (const WCHAR []){ 'f','l','a','t','s','b','_', \
+-  'c','l','a','s','s','3','2',0 }
++static const WCHAR FLATSB_CLASSW[] = { 'f','l','a','t','s','b','_','c','l','a','s','s','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define FLATSB_CLASSW        L"flatsb_class32"
+@@ -712,5 +707,5 @@ int WINAPI DrawShadowText(HDC, LPCWSTR, UINT, RECT*, DWORD, COLORREF, COLORREF,
+ #define WC_HEADERA		"SysHeader32"
+ #if defined(__GNUC__)
+-# define WC_HEADERW (const WCHAR []){ 'S','y','s','H','e','a','d','e','r','3','2',0 }
++static const WCHAR WC_HEADERW[] = { 'S','y','s','H','e','a','d','e','r','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define WC_HEADERW             L"SysHeader32"
+@@ -1022,5 +1017,5 @@ typedef struct tagNMHDFILTERBTNCLICK
+ #define WC_BUTTONA       "Button"
+ #if defined(__GNUC__)
+-# define WC_BUTTONW (const WCHAR []){ 'B','u','t','t','o','n',0 }
++static const WCHAR WC_BUTTONW[] = { 'B','u','t','t','o','n',0 };
+ #elif defined(_MSC_VER)
+ # define WC_BUTTONW      L"Button"
+@@ -1117,6 +1112,5 @@ typedef struct tagNMBCHOTITEM
+ #define TOOLBARCLASSNAMEA       "ToolbarWindow32"
+ #if defined(__GNUC__)
+-# define TOOLBARCLASSNAMEW (const WCHAR []){ 'T','o','o','l','b','a','r', \
+-  'W','i','n','d','o','w','3','2',0 }
++static const WCHAR TOOLBARCLASSNAMEW[] = { 'T','o','o','l','b','a','r','W','i','n','d','o','w','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define TOOLBARCLASSNAMEW      L"ToolbarWindow32"
+@@ -1697,6 +1691,5 @@ CreateMappedBitmap (HINSTANCE, INT_PTR, UINT, LPCOLORMAP, INT);
+ #define TOOLTIPS_CLASSA         "tooltips_class32"
+ #if defined(__GNUC__)
+-# define TOOLTIPS_CLASSW (const WCHAR []){ 't','o','o','l','t','i','p','s','_', \
+-  'c','l','a','s','s','3','2',0 }
++static const WCHAR TOOLTIPS_CLASSW[] = { 't','o','o','l','t','i','p','s','_','c','l','a','s','s','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define TOOLTIPS_CLASSW        L"tooltips_class32"
+@@ -1911,6 +1904,5 @@ typedef struct _TTGETTITLE
+ #define REBARCLASSNAMEA         "ReBarWindow32"
+ #if defined(__GNUC__)
+-# define REBARCLASSNAMEW (const WCHAR []){ 'R','e','B','a','r', \
+-  'W','i','n','d','o','w','3','2',0 }
++static const WCHAR REBARCLASSNAMEW[] = { 'R','e','B','a','r','W','i','n','d','o','w','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define REBARCLASSNAMEW        L"ReBarWindow32"
+@@ -2168,6 +2160,5 @@ typedef struct tagNMREBARAUTOBREAK
+ #define TRACKBAR_CLASSA         "msctls_trackbar32"
+ #if defined(__GNUC__)
+-# define TRACKBAR_CLASSW (const WCHAR []){ 'm','s','c','t','l','s','_', \
+-  't','r','a','c','k','b','a','r','3','2',0 }
++static const WCHAR TRACKBAR_CLASSW[] = { 'm','s','c','t','l','s','_','t','r','a','c','k','b','a','r','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define TRACKBAR_CLASSW        L"msctls_trackbar32"
+@@ -2243,5 +2234,5 @@ static const WCHAR TRACKBAR_CLASSW[] = { 'm','s','c','t','l','s','_',
+ #define WC_PAGESCROLLERA      "SysPager"
+ #if defined(__GNUC__)
+-# define WC_PAGESCROLLERW (const WCHAR []){ 'S','y','s','P','a','g','e','r',0 }
++static const WCHAR WC_PAGESCROLLERW[] = { 'S','y','s','P','a','g','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define WC_PAGESCROLLERW     L"SysPager"
+@@ -2324,6 +2315,5 @@ typedef struct
+ #define WC_TREEVIEWA          "SysTreeView32"
+ #if defined(__GNUC__)
+-# define WC_TREEVIEWW (const WCHAR []){ 'S','y','s', \
+-  'T','r','e','e','V','i','e','w','3','2',0 }
++static const WCHAR WC_TREEVIEWW[] = { 'S','y','s','T','r','e','e','V','i','e','w','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define WC_TREEVIEWW         L"SysTreeView32"
+@@ -3021,6 +3011,5 @@ typedef struct tagTVKEYDOWN
+ #define WC_LISTVIEWA          "SysListView32"
+ #if defined(__GNUC__)
+-# define WC_LISTVIEWW (const WCHAR []){ 'S','y','s', \
+-  'L','i','s','t','V','i','e','w','3','2',0 }
++static const WCHAR WC_LISTVIEWW[] = { 'S','y','s','L','i','s','t','V','i','e','w','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define WC_LISTVIEWW         L"SysListView32"
+@@ -4146,6 +4135,5 @@ typedef struct NMLVSCROLL
+ #define WC_TABCONTROLA		"SysTabControl32"
+ #if defined(__GNUC__)
+-# define WC_TABCONTROLW (const WCHAR []){ 'S','y','s', \
+-  'T','a','b','C','o','n','t','r','o','l','3','2',0 }
++static const WCHAR WC_TABCONTROLW[] = { 'S','y','s','T','a','b','C','o','n','t','r','o','l','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define WC_TABCONTROLW         L"SysTabControl32"
+@@ -4360,6 +4348,5 @@ typedef struct tagTCKEYDOWN
+ #define WC_COMBOBOXEXA        "ComboBoxEx32"
+ #if defined(__GNUC__)
+-# define WC_COMBOBOXEXW (const WCHAR []){ 'C','o','m','b','o', \
+-  'B','o','x','E','x','3','2',0 }
++static const WCHAR WC_COMBOBOXEXW[] = { 'C','o','m','b','o','B','o','x','E','x','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define WC_COMBOBOXEXW       L"ComboBoxEx32"
+@@ -4531,6 +4518,5 @@ typedef struct
+ #define HOTKEY_CLASSA           "msctls_hotkey32"
+ #if defined(__GNUC__)
+-# define HOTKEY_CLASSW (const WCHAR []){ 'm','s','c','t','l','s','_', \
+-  'h','o','t','k','e','y','3','2',0 }
++static const WCHAR HOTKEY_CLASSW[] = { 'm','s','c','t','l','s','_','h','o','t','k','e','y','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define HOTKEY_CLASSW          L"msctls_hotkey32"
+@@ -4564,6 +4550,5 @@ static const WCHAR HOTKEY_CLASSW[] = { 'm','s','c','t','l','s','_',
+ #define ANIMATE_CLASSA        "SysAnimate32"
+ #if defined(__GNUC__)
+-# define ANIMATE_CLASSW (const WCHAR []){ 'S','y','s', \
+-  'A','n','i','m','a','t','e','3','2',0 }
++static const WCHAR ANIMATE_CLASSW[] = { 'S','y','s','A','n','i','m','a','t','e','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define ANIMATE_CLASSW       L"SysAnimate32"
+@@ -4615,6 +4600,5 @@ static const WCHAR ANIMATE_CLASSW[] = { 'S','y','s',
+ #define WC_IPADDRESSA		"SysIPAddress32"
+ #if defined(__GNUC__)
+-# define WC_IPADDRESSW (const WCHAR []){ 'S','y','s', \
+-  'I','P','A','d','d','r','e','s','s','3','2',0 }
++static const WCHAR WC_IPADDRESSW[] = { 'S','y','s','I','P','A','d','d','r','e','s','s','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define WC_IPADDRESSW          L"SysIPAddress32"
+@@ -4660,6 +4644,5 @@ typedef struct tagNMIPADDRESS
+ #define WC_NATIVEFONTCTLA	"NativeFontCtl"
+ #if defined(__GNUC__)
+-# define WC_NATIVEFONTCTLW (const WCHAR []){ 'N','a','t','i','v','e', \
+-  'F','o','n','t','C','t','l',0 }
++static const WCHAR WC_NATIVEFONTCTLW[] = { 'N','a','t','i','v','e','F','o','n','t','C','t','l',0 };
+ #elif defined(_MSC_VER)
+ # define WC_NATIVEFONTCTLW      L"NativeFontCtl"
+@@ -4678,6 +4661,5 @@ static const WCHAR WC_NATIVEFONTCTLW[] = { 'N','a','t','i','v','e',
+ #define MONTHCAL_CLASSA	"SysMonthCal32"
+ #if defined(__GNUC__)
+-# define MONTHCAL_CLASSW (const WCHAR []){ 'S','y','s', \
+-  'M','o','n','t','h','C','a','l','3','2',0 }
++static const WCHAR MONTHCAL_CLASSW[] = { 'S','y','s','M','o','n','t','h','C','a','l','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define MONTHCAL_CLASSW L"SysMonthCal32"
+@@ -4862,6 +4844,5 @@ typedef struct tagNMDAYSTATE
+ #define DATETIMEPICK_CLASSA	"SysDateTimePick32"
+ #if defined(__GNUC__)
+-# define DATETIMEPICK_CLASSW (const WCHAR []){ 'S','y','s', \
+-  'D','a','t','e','T','i','m','e','P','i','c','k','3','2',0 }
++static const WCHAR DATETIMEPICK_CLASSW[] = { 'S','y','s','D','a','t','e','T','i','m','e','P','i','c','k','3','2',0 };
+ #elif defined(_MSC_VER)
+ # define DATETIMEPICK_CLASSW    L"SysDateTimePick32"
+@@ -5114,5 +5095,5 @@ BOOL WINAPI Str_SetPtrW (LPWSTR *, LPCWSTR);
+ 
+ #if defined(__GNUC__)
+-# define WC_LINK (const WCHAR []){ 'S','y','s','L','i','n','k',0 }
++static const WCHAR WC_LINK[] = { 'S','y','s','L','i','n','k',0 };
+ #elif defined(_MSC_VER)
+ # define WC_LINK             L"SysLink"
+@@ -5195,5 +5176,5 @@ typedef struct tagNMLVLINK
+ #define WC_STATICA		"Static"
+ #if defined(__GNUC__)
+-# define WC_STATICW 		(const WCHAR []){ 'S','t','a','t','i','c',0 }
++static const WCHAR WC_STATICW[] = { 'S','t','a','t','i','c',0 };
+ #elif defined(_MSC_VER)
+ # define WC_STATICW 		L"Static"
+@@ -5209,5 +5190,5 @@ static const WCHAR WC_STATICW[] = { 'S','t','a','t','i','c',0 };
+ #define WC_COMBOBOXA              "ComboBox"
+ #if defined(__GNUC__)
+-# define WC_COMBOBOXW             (const WCHAR []){ 'C','o','m','b','o','B','o','x',0 }
++static const WCHAR WC_COMBOBOXW[] = { 'C','o','m','b','o','B','o','x',0 };
+ #elif defined(_MSC_VER)
+ # define WC_COMBOBOXW             L"ComboBox"
+@@ -5234,5 +5215,5 @@ static const WCHAR WC_COMBOBOXW[] = { 'C','o','m','b','o','B','o','x',0 };
+ #define WC_EDITA                  "Edit"
+ #if defined(__GNUC__)
+-# define WC_EDITW                 (const WCHAR []){ 'E','d','i','t',0 }
++static const WCHAR WC_EDITW[] = { 'E','d','i','t',0 };
+ #elif defined(_MSC_VER)
+ # define WC_EDITW                 L"Edit"
+@@ -5273,5 +5254,5 @@ typedef struct _tagEDITBALLOONTIP
+ #define WC_LISTBOXA               "ListBox"
+ #if defined(__GNUC__)
+-# define WC_LISTBOXW              (const WCHAR []){ 'L','i','s','t','B','o','x',0 }
++static const WCHAR WC_LISTBOXW[] = { 'L','i','s','t','B','o','x',0 };
+ #elif defined(_MSC_VER)
+ # define WC_LISTBOXW              L"ListBox"
+@@ -5287,5 +5268,5 @@ static const WCHAR WC_LISTBOXW[] = { 'L','i','s','t','B','o','x',0 };
+ #define WC_SCROLLBARA             "ScrollBar"
+ #if defined(__GNUC__)
+-# define WC_SCROLLBARW            (const WCHAR []){ 'S','c','r','o','l','l','B','a','r',0 }
++static const WCHAR WC_SCROLLBARW[] = { 'S','c','r','o','l','l','B','a','r',0 };
+ #elif defined(_MSC_VER)
+ # define WC_SCROLLBARW            L"ScrollBar"
+diff --git a/include/commdlg.h b/include/commdlg.h
+index 214badd0852..0b16e67fde7 100644
+--- a/include/commdlg.h
++++ b/include/commdlg.h
+@@ -360,6 +360,5 @@ DECL_WINELIB_TYPE_AW(LPCHOOSEFONT)
+ #define LBSELCHSTRINGA  "commdlg_LBSelChangedNotify"
+ #if defined(__GNUC__)
+-# define LBSELCHSTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'L','B','S','e','l','C','h','a','n','g','e','d','N','o','t','i','f','y',0 }
++static const WCHAR LBSELCHSTRINGW[] = { 'c','o','m','m','d','l','g','_','L','B','S','e','l','C','h','a','n','g','e','d','N','o','t','i','f','y',0 };
+ #elif defined(_MSC_VER)
+ # define LBSELCHSTRINGW L"commdlg_LBSelChangedNotify"
+@@ -372,6 +371,5 @@ static const WCHAR LBSELCHSTRINGW[] = { 'c','o','m','m','d','l','g','_',
+ #define SHAREVISTRINGA  "commdlg_ShareViolation"
+ #if defined(__GNUC__)
+-# define SHAREVISTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'S','h','a','r','e','V','i','o','l','a','t','i','o','n',0 }
++static const WCHAR SHAREVISTRINGW[] = { 'c','o','m','m','d','l','g','_','S','h','a','r','e','V','i','o','l','a','t','i','o','n',0 };
+ #elif defined(_MSC_VER)
+ # define SHAREVISTRINGW L"commdlg_ShareViolation"
+@@ -384,6 +382,5 @@ static const WCHAR SHAREVISTRINGW[] = { 'c','o','m','m','d','l','g','_',
+ #define FILEOKSTRINGA   "commdlg_FileNameOK"
+ #if defined(__GNUC__)
+-# define FILEOKSTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'F','i','l','e','N','a','m','e','O','K',0 }
++static const WCHAR FILEOKSTRINGW[] = { 'c','o','m','m','d','l','g','_','F','i','l','e','N','a','m','e','O','K',0 };
+ #elif defined(_MSC_VER)
+ # define FILEOKSTRINGW  L"commdlg_FileNameOK"
+@@ -396,6 +393,5 @@ static const WCHAR FILEOKSTRINGW[] = { 'c','o','m','m','d','l','g','_',
+ #define COLOROKSTRINGA  "commdlg_ColorOK"
+ #if defined(__GNUC__)
+-# define COLOROKSTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'C','o','l','o','r','O','K',0 }
++static const WCHAR COLOROKSTRINGW[] = { 'c','o','m','m','d','l','g','_','C','o','l','o','r','O','K',0 };
+ #elif defined(_MSC_VER)
+ # define COLOROKSTRINGW L"commdlg_ColorOK"
+@@ -408,6 +404,5 @@ static const WCHAR COLOROKSTRINGW[] = { 'c','o','m','m','d','l','g','_',
+ #define SETRGBSTRINGA   "commdlg_SetRGBColor"
+ #if defined(__GNUC__)
+-# define SETRGBSTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'S','e','t','R','G','B','C','o','l','o','r',0 }
++static const WCHAR SETRGBSTRINGW[] = { 'c','o','m','m','d','l','g','_','S','e','t','R','G','B','C','o','l','o','r',0 };
+ #elif defined(_MSC_VER)
+ # define SETRGBSTRINGW  L"commdlg_SetRGBColor"
+@@ -420,6 +415,5 @@ static const WCHAR SETRGBSTRINGW[] = { 'c','o','m','m','d','l','g','_',
+ #define FINDMSGSTRINGA  "commdlg_FindReplace"
+ #if defined(__GNUC__)
+-# define FINDMSGSTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'F','i','n','d','R','e','p','l','a','c','e',0 }
++static const WCHAR FINDMSGSTRINGW[] = { 'c','o','m','m','d','l','g','_','F','i','n','d','R','e','p','l','a','c','e',0 };
+ #elif defined(_MSC_VER)
+ # define FINDMSGSTRINGW L"commdlg_FindReplace"
+@@ -432,6 +426,5 @@ static const WCHAR FINDMSGSTRINGW[] = { 'c','o','m','m','d','l','g','_',
+ #define HELPMSGSTRINGA  "commdlg_help"
+ #if defined(__GNUC__)
+-# define HELPMSGSTRINGW (const WCHAR []){ 'c','o','m','m','d','l','g','_', \
+-  'H','e','l','p',0 }
++static const WCHAR HELPMSGSTRINGW[] = { 'c','o','m','m','d','l','g','_','H','e','l','p',0 };
+ #elif defined(_MSC_VER)
+ # define HELPMSGSTRINGW L"commdlg_help"
+diff --git a/include/d3dcompiler.h b/include/d3dcompiler.h
+index 148e958cfda..34739708c2d 100644
+--- a/include/d3dcompiler.h
++++ b/include/d3dcompiler.h
+@@ -27,5 +27,5 @@ extern "C" {
+ 
+ #if defined(__GNUC__)
+-#define D3DCOMPILER_DLL_W (const WCHAR[]){'d','3','d','c','o','m','p','i','l','e','r','_','4','7','.','d','l','l',0}
++static const WCHAR D3DCOMPILER_DLL_W[] = {'d','3','d','c','o','m','p','i','l','e','r','_','4','7','.','d','l','l',0};
+ #elif defined(_MSC_VER)
+ #define D3DCOMPILER_DLL_W L"d3dcompiler_47.dll"
+diff --git a/include/ddeml.h b/include/ddeml.h
+index e769662988f..292761c009f 100644
+--- a/include/ddeml.h
++++ b/include/ddeml.h
+@@ -62,12 +62,12 @@ extern "C" {
+ #define SZDDE_ITEM_ITEMLIST     L"TopicItemList"
+ #elif defined(__GNUC__)
+-#define SZDDESYS_TOPIC          (const WCHAR []){'S','y','s','t','e','m',0}
+-#define SZDDESYS_ITEM_TOPICS    (const WCHAR []){'T','o','p','i','c','s',0}
+-#define SZDDESYS_ITEM_SYSITEMS  (const WCHAR []){'S','y','s','I','t','e','m','s',0}
+-#define SZDDESYS_ITEM_RTNMSG    (const WCHAR []){'R','e','t','u','r','n','M','e','s','s','a','g','e',0}
+-#define SZDDESYS_ITEM_STATUS    (const WCHAR []){'S','t','a','t','u','s',0}
+-#define SZDDESYS_ITEM_FORMATS   (const WCHAR []){'F','o','r','m','a','t','s',0}
+-#define SZDDESYS_ITEM_HELP      (const WCHAR []){'H','e','l','p',0}
+-#define SZDDE_ITEM_ITEMLIST     (const WCHAR []){'T','o','p','i','c','I','t','e','m','L','i','s','t',0}
++static const WCHAR SZDDESYS_TOPIC[] = {'S','y','s','t','e','m',0};
++static const WCHAR SZDDESYS_ITEM_TOPICS[] = {'T','o','p','i','c','s',0};
++static const WCHAR SZDDESYS_ITEM_SYSITEMS[] = {'S','y','s','I','t','e','m','s',0};
++static const WCHAR SZDDESYS_ITEM_RTNMSG[] = {'R','e','t','u','r','n','M','e','s','s','a','g','e',0};
++static const WCHAR SZDDESYS_ITEM_STATUS[] = {'S','t','a','t','u','s',0};
++static const WCHAR SZDDESYS_ITEM_FORMATS[] = {'F','o','r','m','a','t','s',0};
++static const WCHAR SZDDESYS_ITEM_HELP[] = {'H','e','l','p',0};
++static const WCHAR SZDDE_ITEM_ITEMLIST[] = {'T','o','p','i','c','I','t','e','m','L','i','s','t',0};
+ #else /* _MSC_VER/__GNUC__ */
+ static const WCHAR SZDDESYS_TOPIC[] = {'S','y','s','t','e','m',0};
+diff --git a/include/ddk/mountmgr.h b/include/ddk/mountmgr.h
+index f0e836f6e11..71ca5ee196c 100644
+--- a/include/ddk/mountmgr.h
++++ b/include/ddk/mountmgr.h
+@@ -26,6 +26,6 @@
+ 
+ #if defined(__GNUC__)
+-#define MOUNTMGR_DEVICE_NAME (const WCHAR []){'\\','D','e','v','i','c','e','\\','M','o','u','n','t','P','o','i','n','t','M','a','n','a','g','e','r',0}
+-#define MOUNTMGR_DOS_DEVICE_NAME (const WCHAR []){'\\','\\','.','\\','M','o','u','n','t','P','o','i','n','t','M','a','n','a','g','e','r',0}
++static const WCHAR MOUNTMGR_DEVICE_NAME[] = {'\\','D','e','v','i','c','e','\\','M','o','u','n','t','P','o','i','n','t','M','a','n','a','g','e','r',0};
++static const WCHAR MOUNTMGR_DOS_DEVICE_NAME[] = {'\\','\\','.','\\','M','o','u','n','t','P','o','i','n','t','M','a','n','a','g','e','r',0};
+ #elif defined(_MSC_VER)
+ #define MOUNTMGR_DEVICE_NAME     L"\\Device\\MountPointManager"
+diff --git a/include/dpaddr.h b/include/dpaddr.h
+index d47dd262194..fac8dd118ae 100644
+--- a/include/dpaddr.h
++++ b/include/dpaddr.h
+@@ -90,37 +90,37 @@ typedef struct sockaddr SOCKADDR;
+ #if defined(__GNUC__)
+ 
+-# define DPNA_HEADER                   (const WCHAR []){ 'x','-','d','i','r','e','c','t','p','l','a','y',':','/',0 }
+-# define DPNA_KEY_APPLICATION_INSTANCE (const WCHAR []){ 'a','p','p','l','i','c','a','t','i','o','n','i','n','s','t','a','n','c','e',0 }
+-# define DPNA_KEY_BAUD                 (const WCHAR []){ 'b','a','u','d',0 }
+-# define DPNA_KEY_DEVICE               (const WCHAR []){ 'd','e','v','i','c','e',0 }
+-# define DPNA_KEY_FLOWCONTROL          (const WCHAR []){ 'f','l','o','w','c','o','n','t','r','o','l',0 }
+-# define DPNA_KEY_HOSTNAME             (const WCHAR []){ 'h','o','s','t','n','a','m','e',0 }
+-# define DPNA_KEY_NAMEINFO             (const WCHAR []){ 'n','a','m','e','i','n','f','o',0 }
+-# define DPNA_KEY_PARITY               (const WCHAR []){ 'p','a','r','i','t','y',0 }
+-# define DPNA_KEY_PHONENUMBER          (const WCHAR []){ 'p','h','o','n','e','n','u','m','b','e','r',0 }
+-# define DPNA_KEY_PORT                 (const WCHAR []){ 'p','o','r','t',0 }
+-# define DPNA_KEY_PROCESSOR            (const WCHAR []){ 'p','r','o','c','e','s','s','o','r',0 }
+-# define DPNA_KEY_PROGRAM              (const WCHAR []){ 'p','r','o','g','r','a','m',0 }
+-# define DPNA_KEY_PROVIDER             (const WCHAR []){ 'p','r','o','v','i','d','e','r',0 }
+-# define DPNA_KEY_SCOPE                (const WCHAR []){ 's','c','o','p','e',0 }
+-# define DPNA_KEY_STOPBITS             (const WCHAR []){ 's','t','o','p','b','i','t','s',0 }
+-# define DPNA_KEY_TRAVERSALMODE        (const WCHAR []){ 't','r','a','v','e','r','s','a','l','m','o','d','e',0 }
+-# define DPNA_STOP_BITS_ONE            (const WCHAR []){ '1',0 }
+-# define DPNA_STOP_BITS_ONE_FIVE       (const WCHAR []){ '1','.','5',0 }
+-# define DPNA_STOP_BITS_TWO            (const WCHAR []){ '2',0 }
+-# define DPNA_PARITY_NONE              (const WCHAR []){ 'N','O','N','E',0 }
+-# define DPNA_PARITY_EVEN              (const WCHAR []){ 'E','V','E','N',0 }
+-# define DPNA_PARITY_ODD               (const WCHAR []){ 'O','D','D',0 }
+-# define DPNA_PARITY_MARK              (const WCHAR []){ 'M','A','R','K',0 }
+-# define DPNA_PARITY_SPACE             (const WCHAR []){ 'S','P','A','C','E',0 }
+-# define DPNA_FLOW_CONTROL_NONE        (const WCHAR []){ 'N','O','N','E',0 }
+-# define DPNA_FLOW_CONTROL_XONXOFF     (const WCHAR []){ 'X','O','N','X','O','F','F',0 }
+-# define DPNA_FLOW_CONTROL_RTS         (const WCHAR []){ 'R','T','S',0 }
+-# define DPNA_FLOW_CONTROL_DTR         (const WCHAR []){ 'D','T','R',0 }
+-# define DPNA_FLOW_CONTROL_RTSDTR      (const WCHAR []){ 'R','T','S','D','T','R',0 }
+-# define DPNA_VALUE_TCPIPPROVIDER      (const WCHAR []){ 'I','P',0 }
+-# define DPNA_VALUE_IPXPROVIDER        (const WCHAR []){ 'I','P','X',0 }
+-# define DPNA_VALUE_MODEMPROVIDER      (const WCHAR []){ 'M','O','D','E','M',0 }
+-# define DPNA_VALUE_SERIALPROVIDER     (const WCHAR []){ 'S','E','R','I','A','L',0 }
++static const WCHAR DPNA_HEADER[] = { 'x','-','d','i','r','e','c','t','p','l','a','y',':','/',0 };
++static const WCHAR DPNA_KEY_APPLICATION_INSTANCE[] = { 'a','p','p','l','i','c','a','t','i','o','n','i','n','s','t','a','n','c','e',0 };
++static const WCHAR DPNA_KEY_BAUD[] = { 'b','a','u','d',0 };
++static const WCHAR DPNA_KEY_DEVICE[] = { 'd','e','v','i','c','e',0 };
++static const WCHAR DPNA_KEY_FLOWCONTROL[] = { 'f','l','o','w','c','o','n','t','r','o','l',0 };
++static const WCHAR DPNA_KEY_HOSTNAME[] = { 'h','o','s','t','n','a','m','e',0 };
++static const WCHAR DPNA_KEY_NAMEINFO[] = { 'n','a','m','e','i','n','f','o',0 };
++static const WCHAR DPNA_KEY_PARITY[] = { 'p','a','r','i','t','y',0 };
++static const WCHAR DPNA_KEY_PHONENUMBER[] = { 'p','h','o','n','e','n','u','m','b','e','r',0 };
++static const WCHAR DPNA_KEY_PORT[] = { 'p','o','r','t',0 };
++static const WCHAR DPNA_KEY_PROCESSOR[] = { 'p','r','o','c','e','s','s','o','r',0 };
++static const WCHAR DPNA_KEY_PROGRAM[] = { 'p','r','o','g','r','a','m',0 };
++static const WCHAR DPNA_KEY_PROVIDER[] = { 'p','r','o','v','i','d','e','r',0 };
++static const WCHAR DPNA_KEY_SCOPE[] = { 's','c','o','p','e',0 };
++static const WCHAR DPNA_KEY_STOPBITS[] = { 's','t','o','p','b','i','t','s',0 };
++static const WCHAR DPNA_KEY_TRAVERSALMODE[] = { 't','r','a','v','e','r','s','a','l','m','o','d','e',0 };
++static const WCHAR DPNA_STOP_BITS_ONE[] = { '1',0 };
++static const WCHAR DPNA_STOP_BITS_ONE_FIVE[] = { '1','.','5',0 };
++static const WCHAR DPNA_STOP_BITS_TWO[] = { '2',0 };
++static const WCHAR DPNA_PARITY_NONE[] = { 'N','O','N','E',0 };
++static const WCHAR DPNA_PARITY_EVEN[] = { 'E','V','E','N',0 };
++static const WCHAR DPNA_PARITY_ODD[] = { 'O','D','D',0 };
++static const WCHAR DPNA_PARITY_MARK[] = { 'M','A','R','K',0 };
++static const WCHAR DPNA_PARITY_SPACE[] = { 'S','P','A','C','E',0 };
++static const WCHAR DPNA_FLOW_CONTROL_NONE[] = { 'N','O','N','E',0 };
++static const WCHAR DPNA_FLOW_CONTROL_XONXOFF[] = { 'X','O','N','X','O','F','F',0 };
++static const WCHAR DPNA_FLOW_CONTROL_RTS[] = { 'R','T','S',0 };
++static const WCHAR DPNA_FLOW_CONTROL_DTR[] = { 'D','T','R',0 };
++static const WCHAR DPNA_FLOW_CONTROL_RTSDTR[] = { 'R','T','S','D','T','R',0 };
++static const WCHAR DPNA_VALUE_TCPIPPROVIDER[] = { 'I','P',0 };
++static const WCHAR DPNA_VALUE_IPXPROVIDER[] = { 'I','P','X',0 };
++static const WCHAR DPNA_VALUE_MODEMPROVIDER[] = { 'M','O','D','E','M',0 };
++static const WCHAR DPNA_VALUE_SERIALPROVIDER[] = { 'S','E','R','I','A','L',0 };
+ 
+ #elif defined(_MSC_VER)
+diff --git a/include/lmaccess.h b/include/lmaccess.h
+index 5042f04cc45..da331456971 100644
+--- a/include/lmaccess.h
++++ b/include/lmaccess.h
+@@ -92,5 +92,5 @@ extern "C" {
+ 
+ #if defined(__GNUC__)
+-# define GROUP_SPECIALGRP_USERS (const WCHAR []){ 'U','S','E','R','S',0 }
++static const WCHAR GROUP_SPECIALGRP_USERS[] = { 'U','S','E','R','S',0 };
+ #elif defined(_MSC_VER)
+ # define GROUP_SPECIALGRP_USERS         L"USERS"
+@@ -100,5 +100,5 @@ static const WCHAR GROUP_SPECIALGRP_USERS[] = { 'U','S','E','R','S',0 };
+ 
+ #if defined(__GNUC__)
+-# define GROUP_SPECIALGRP_ADMINS (const WCHAR []){ 'A','D','M','I','N','S',0 }
++static const WCHAR GROUP_SPECIALGRP_ADMINS[] = { 'A','D','M','I','N','S',0 };
+ #elif defined(_MSC_VER)
+ # define GROUP_SPECIALGRP_ADMINS        L"ADMINS"
+@@ -108,5 +108,5 @@ static const WCHAR GROUP_SPECIALGRP_ADMINS[] = { 'A','D','M','I','N','S',0 };
+ 
+ #if defined(__GNUC__)
+-# define GROUP_SPECIALGRP_GUESTS  (const WCHAR []){ 'G','U','E','S','T','S',0 }
++static const WCHAR GROUP_SPECIALGRP_GUESTS[] = { 'G','U','E','S','T','S',0 };
+ #elif defined(_MSC_VER)
+ # define GROUP_SPECIALGRP_GUESTS        L"GUESTS"
+@@ -116,5 +116,5 @@ static const WCHAR GROUP_SPECIALGRP_GUESTS[] = { 'G','U','E','S','T','S',0 };
+ 
+ #if defined(__GNUC__)
+-# define GROUP_SPECIALGRP_LOCAL (const WCHAR []){ 'L','O','C','A','L',0 }
++static const WCHAR GROUP_SPECIALGRP_LOCAL[] = { 'L','O','C','A','L',0 };
+ #elif defined(_MSC_VER)
+ # define GROUP_SPECIALGRP_LOCAL         L"LOCAL"
+diff --git a/include/msacm.h b/include/msacm.h
+index eaa39d2c01b..afb0878be2b 100644
+--- a/include/msacm.h
++++ b/include/msacm.h
+@@ -108,6 +108,5 @@ extern "C" {
+ #define ACMHELPMSGSTRINGA       "acmchoose_help"
+ #if defined(__GNUC__)
+-# define ACMHELPMSGSTRINGW (const WCHAR []){ 'a','c','m', \
+-  'c','h','o','o','s','e','_','h','e','l','p',0 }
++static const WCHAR ACMHELPMSGSTRINGW[] = { 'a','c','m','c','h','o','o','s','e','_','h','e','l','p',0 };
+ #elif defined(_MSC_VER)
+ # define ACMHELPMSGSTRINGW      L"acmchoose_help"
+@@ -120,6 +119,5 @@ static const WCHAR ACMHELPMSGSTRINGW[] = { 'a','c','m',
+ #define ACMHELPMSGCONTEXTMENUA  "acmchoose_contextmenu"
+ #if defined(__GNUC__)
+-# define ACMHELPMSGCONTEXTMENUW (const WCHAR []){ 'a','c','m', \
+-  'c','h','o','o','s','e','_','c','o','n','t','e','x','t','m','e','n','u',0 }
++static const WCHAR ACMHELPMSGCONTEXTMENUW[] = { 'a','c','m','c','h','o','o','s','e','_','c','o','n','t','e','x','t','m','e','n','u',0 };
+ #elif defined(_MSC_VER)
+ # define ACMHELPMSGCONTEXTMENUW L"acmchoose_contextmenu"
+@@ -132,6 +130,5 @@ static const WCHAR ACMHELPMSGCONTEXTMENUW[] = { 'a','c','m',
+ #define ACMHELPMSGCONTEXTHELPA  "acmchoose_contexthelp"
+ #if defined(__GNUC__)
+-# define ACMHELPMSGCONTEXTHELPW (const WCHAR []){ 'a','c','m', \
+-  'c','h','o','o','s','e','_','c','o','n','t','e','x','t','h','e','l','p',0 }
++static const WCHAR ACMHELPMSGCONTEXTHELPW[] = { 'a','c','m','c','h','o','o','s','e','_','c','o','n','t','e','x','t','h','e','l','p',0 };
+ #elif defined(_MSC_VER)
+ # define ACMHELPMSGCONTEXTHELPW L"acmchoose_contexthelp"
+diff --git a/include/ntsecapi.h b/include/ntsecapi.h
+index 6d5e01d675b..0f0e258be5d 100644
+--- a/include/ntsecapi.h
++++ b/include/ntsecapi.h
+@@ -354,5 +354,5 @@ typedef enum _POLICY_NOTIFICATION_INFORMATION_CLASS
+ #define MICROSOFT_KERBEROS_NAME_W L"Kerberos"
+ #elif defined(__GNUC__)
+-#define MICROSOFT_KERBEROS_NAME_W (const WCHAR []){ 'K','e','r','b','e','r','o','s',0 }
++static const WCHAR MICROSOFT_KERBEROS_NAME_W[] = { 'K','e','r','b','e','r','o','s',0 };
+ #else /* _MSC_VER/__GNUC__ */
+ static const WCHAR MICROSOFT_KERBEROS_NAME_W[] = { 'K','e','r','b','e','r','o','s',0 };
+diff --git a/include/oledlg.h b/include/oledlg.h
+index 80829ec1b6d..f21d80ed60a 100644
+--- a/include/oledlg.h
++++ b/include/oledlg.h
+@@ -96,13 +96,13 @@ typedef UINT (CALLBACK *LPFNOLEUIHOOK)(HWND, UINT, WPARAM, LPARAM);
+ #define SZOLEUI_MSG_BROWSE_OFNA        "OLEUI_MSG_BROWSE_OFN"
+ #if defined(__GNUC__)
+-# define SZOLEUI_MSG_HELPW             (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','H','E','L','P',0 }
+-# define SZOLEUI_MSG_ENDDIALOGW        (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','E','N','D','D','I','A','L','O','G',0 }
+-# define SZOLEUI_MSG_BROWSEW           (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','B','R','O','W','S','E',0 }
+-# define SZOLEUI_MSG_CHANGEICONW       (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','C','H','A','N','G','E','I','C','O','N',0 }
+-# define SZOLEUI_MSG_CLOSEBUSYDIALOGW  (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','C','L','O','S','E','B','U','S','Y','D','I','A','L','O','G',0 }
+-# define SZOLEUI_MSG_CONVERTW          (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','C','O','N','V','E','R','T',0 }
+-# define SZOLEUI_MSG_CHANGESOURCEW     (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','C','H','A','N','G','E','S','O','U','R','C','E',0 }
+-# define SZOLEUI_MSG_ADDCONTROLW       (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','A','D','D','C','O','N','T','R','O','L',0 }
+-# define SZOLEUI_MSG_BROWSE_OFNW       (const WCHAR []){ 'O','L','E','U','I','_','M','S','G','_','B','R','O','W','S','E','_','O','F','N',0 }
++static const WCHAR SZOLEUI_MSG_HELPW[] = { 'O','L','E','U','I','_','M','S','G','_','H','E','L','P',0 };
++static const WCHAR SZOLEUI_MSG_ENDDIALOGW[] = { 'O','L','E','U','I','_','M','S','G','_','E','N','D','D','I','A','L','O','G',0 };
++static const WCHAR SZOLEUI_MSG_BROWSEW[] = { 'O','L','E','U','I','_','M','S','G','_','B','R','O','W','S','E',0 };
++static const WCHAR SZOLEUI_MSG_CHANGEICONW[] = { 'O','L','E','U','I','_','M','S','G','_','C','H','A','N','G','E','I','C','O','N',0 };
++static const WCHAR SZOLEUI_MSG_CLOSEBUSYDIALOGW[] = { 'O','L','E','U','I','_','M','S','G','_','C','L','O','S','E','B','U','S','Y','D','I','A','L','O','G',0 };
++static const WCHAR SZOLEUI_MSG_CONVERTW[] = { 'O','L','E','U','I','_','M','S','G','_','C','O','N','V','E','R','T',0 };
++static const WCHAR SZOLEUI_MSG_CHANGESOURCEW[] = { 'O','L','E','U','I','_','M','S','G','_','C','H','A','N','G','E','S','O','U','R','C','E',0 };
++static const WCHAR SZOLEUI_MSG_ADDCONTROLW[] = { 'O','L','E','U','I','_','M','S','G','_','A','D','D','C','O','N','T','R','O','L',0 };
++static const WCHAR SZOLEUI_MSG_BROWSE_OFNW[] = { 'O','L','E','U','I','_','M','S','G','_','B','R','O','W','S','E','_','O','F','N',0 };
+ #elif defined(_MSC_VER)
+ # define SZOLEUI_MSG_HELPW              L"OLEUI_MSG_HELP"
+diff --git a/include/prsht.h b/include/prsht.h
+index 2b2a3e18f34..485ad622219 100644
+--- a/include/prsht.h
++++ b/include/prsht.h
+@@ -32,6 +32,5 @@ extern "C" {
+ #define WC_PROPSHEETA      "SysPropertySheet"
+ #if defined(__GNUC__)
+-# define WC_PROPSHEETW (const WCHAR []){ 'S','y','s', \
+-  'P','r','o','p','e','r','t','y','S','h','e','e','t',0 }
++static const WCHAR WC_PROPSHEETW[] = { 'S','y','s','P','r','o','p','e','r','t','y','S','h','e','e','t',0 };
+ #elif defined(_MSC_VER)
+ # define WC_PROPSHEETW     L"SysPropertySheet"
+diff --git a/include/richedit.h b/include/richedit.h
+index c2248436ace..1689502be3b 100644
+--- a/include/richedit.h
++++ b/include/richedit.h
+@@ -34,5 +34,5 @@ extern "C" {
+ 
+ #if defined(__GNUC__)
+-# define MSFTEDIT_CLASS (const WCHAR []){ 'R','i','c','h','E','d','i','t','5','0','W',0 }
++static const WCHAR MSFTEDIT_CLASS[] = { 'R','i','c','h','E','d','i','t','5','0','W',0 };
+ #elif defined(_MSC_VER)
+ # define MSFTEDIT_CLASS L"RichEdit50W"
+@@ -43,5 +43,5 @@ static const WCHAR MSFTEDIT_CLASS[] = { 'R','i','c','h','E','d','i','t','5','0',
+ #define RICHEDIT_CLASS20A	"RichEdit20A"
+ #if defined(__GNUC__)
+-# define RICHEDIT_CLASS20W (const WCHAR []){ 'R','i','c','h','E','d','i','t','2','0','W',0 }
++static const WCHAR RICHEDIT_CLASS20W[] = { 'R','i','c','h','E','d','i','t','2','0','W',0 };
+ #elif defined(_MSC_VER)
+ # define RICHEDIT_CLASS20W      L"RichEdit20W"
+diff --git a/include/schannel.h b/include/schannel.h
+index b48a71947e6..69962825e34 100644
+--- a/include/schannel.h
++++ b/include/schannel.h
+@@ -24,7 +24,5 @@
+ #define UNISP_NAME_A "Microsoft Unified Security Protocol Provider"
+ #if defined(__GNUC__)
+-#define UNISP_NAME_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',\
+- ' ','U','n','i','f','i','e','d',' ','S','e','c','u','r','i','t','y',' ',\
+- 'P','r','o','t','o','c','o','l',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR UNISP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',' ','U','n','i','f','i','e','d',' ','S','e','c','u','r','i','t','y',' ','P','r','o','t','o','c','o','l',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ #define UNISP_NAME_W L"Microsoft Unified Security Protocol Provider"
+@@ -38,6 +36,5 @@ static const WCHAR UNISP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',
+ #define SSL2SP_NAME_A   "Microsoft SSL 2.0"
+ #if defined(__GNUC__)
+-#define SSL2SP_NAME_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',\
+- ' ','S','S','L',' ','2','.','0',0 }
++static const WCHAR SSL2SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',' ','S','S','L',' ','2','.','0',0 };
+ #elif defined(_MSC_VER)
+ #define SSL2SP_NAME_W  L"Microsoft SSL 2.0"
+@@ -50,6 +47,5 @@ static const WCHAR SSL2SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',
+ #define SSL3SP_NAME_A   "Microsoft SSL 3.0"
+ #if defined(__GNUC__)
+-#define SSL3SP_NAME_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',\
+- ' ','S','S','L',' ','3','.','0',0 }
++static const WCHAR SSL3SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',' ','S','S','L',' ','3','.','0',0 };
+ #elif defined(_MSC_VER)
+ #define SSL3SP_NAME_W  L"Microsoft SSL 3.0"
+@@ -62,6 +58,5 @@ static const WCHAR SSL3SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',
+ #define TLS1SP_NAME_A   "Microsoft TLS 1.0"
+ #if defined(__GNUC__)
+-#define TLS1SP_NAME_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',\
+- ' ','T','L','S',' ','1','.','0',0 }
++static const WCHAR TLS1SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',' ','T','L','S',' ','1','.','0',0 };
+ #elif defined(_MSC_VER)
+ #define TLS1SP_NAME_W  L"Microsoft TLS 1.0"
+@@ -74,6 +69,5 @@ static const WCHAR TLS1SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',
+ #define PCT1SP_NAME_A   "Microsoft PCT 1.0"
+ #if defined(__GNUC__)
+-#define PCT1SP_NAME_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',\
+- ' ','P','C','T',' ','1','.','0',0 }
++static const WCHAR PCT1SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',' ','P','C','T',' ','1','.','0',0 };
+ #elif defined(_MSC_VER)
+ #define PCT1SP_NAME_W  L"Microsoft PCT 1.0"
+@@ -86,5 +80,5 @@ static const WCHAR PCT1SP_NAME_W[] = { 'M','i','c','r','o','s','o','f','t',
+ #define SCHANNEL_NAME_A "Schannel"
+ #if defined(__GNUC__)
+-#define SCHANNEL_NAME_W (const WCHAR []){ 'S','c','h','a','n','n','e','l',0 }
++static const WCHAR SCHANNEL_NAME_W[] = { 'S','c','h','a','n','n','e','l',0 };
+ #elif defined(_MSC_VER)
+ #define SCHANNEL_NAME_W  L"Schannel"
+diff --git a/include/softpub.h b/include/softpub.h
+index 46403992d7f..e0ecdb36733 100644
+--- a/include/softpub.h
++++ b/include/softpub.h
+@@ -26,6 +26,5 @@
+ 
+ #if defined(__GNUC__)
+-#define SP_GENERIC_CERT_INIT_FUNCTION (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','D','e','f','C','e','r','t','I','n','i','t', 0}
++static const WCHAR SP_GENERIC_CERT_INIT_FUNCTION[] = {'S','o','f','t','p','u','b','D','e','f','C','e','r','t','I','n','i','t', 0};
+ #elif defined(_MSC_VER)
+ #define SP_GENERIC_CERT_INIT_FUNCTION L"SoftpubDefCertInit"
+@@ -39,8 +38,6 @@ static const WCHAR SP_GENERIC_CERT_INIT_FUNCTION[] =
+ 
+ #if defined(__GNUC__)
+-#define GENERIC_CHAIN_FINALPOLICY_FUNCTION (const WCHAR []) \
+-    {'G','e','n','e','r','i','c','C','h','a','i','n','F','i','n','a','l','P','r','o','v', 0}
+-#define GENERIC_CHAIN_CERTTRUST_FUNCTION (const WCHAR []) \
+-    {'G','e','n','e','r','i','c','C','h','a','i','n','C','e','r','t','i','f','i','c','a','t','e','T','r','u','s','t', 0}
++static const WCHAR GENERIC_CHAIN_FINALPOLICY_FUNCTION[] = {'G','e','n','e','r','i','c','C','h','a','i','n','F','i','n','a','l','P','r','o','v', 0};
++static const WCHAR GENERIC_CHAIN_CERTTRUST_FUNCTION[] = {'G','e','n','e','r','i','c','C','h','a','i','n','C','e','r','t','i','f','i','c','a','t','e','T','r','u','s','t', 0};
+ #elif defined(_MSC_VER)
+ #define GENERIC_CHAIN_FINALPOLICY_FUNCTION L"GenericChainFinalProv"
+@@ -97,6 +94,5 @@ typedef struct _WTD_GENERIC_CHAIN_POLICY_DATA
+ 
+ #if defined(__GNUC__)
+-#define SP_POLICY_PROVIDER_DLL_NAME (const WCHAR []) \
+-    {'W','I','N','T','R','U','S','T','.','D','L','L' ,0}
++static const WCHAR SP_POLICY_PROVIDER_DLL_NAME[] = {'W','I','N','T','R','U','S','T','.','D','L','L' ,0};
+ #elif defined(_MSC_VER)
+ #define SP_POLICY_PROVIDER_DLL_NAME L"WINTRUST.DLL"
+@@ -110,16 +106,10 @@ static const WCHAR SP_POLICY_PROVIDER_DLL_NAME[] =
+ 
+ #if defined(__GNUC__)
+-#define SP_INIT_FUNCTION          (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','I','n','i','t','i','a','l','i','z','e', 0}
+-#define SP_OBJTRUST_FUNCTION      (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','L','o','a','d','M','e','s','s','a','g','e', 0}
+-#define SP_SIGTRUST_FUNCTION      (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','L','o','a','d','S','i','g','n','a','t','u','r','e', 0}
+-#define SP_CHKCERT_FUNCTION       (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','C','h','e','c','k','C','e','r','t', 0}
+-#define SP_FINALPOLICY_FUNCTION   (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','A','u','t','h','e','n','t','i','c','o','d','e', 0}
+-#define SP_CLEANUPPOLICY_FUNCTION (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','C','l','e','a','n','u','p', 0}
++static const WCHAR SP_INIT_FUNCTION[] = {'S','o','f','t','p','u','b','I','n','i','t','i','a','l','i','z','e', 0};
++static const WCHAR SP_OBJTRUST_FUNCTION[] = {'S','o','f','t','p','u','b','L','o','a','d','M','e','s','s','a','g','e', 0};
++static const WCHAR SP_SIGTRUST_FUNCTION[] = {'S','o','f','t','p','u','b','L','o','a','d','S','i','g','n','a','t','u','r','e', 0};
++static const WCHAR SP_CHKCERT_FUNCTION[] = {'S','o','f','t','p','u','b','C','h','e','c','k','C','e','r','t', 0};
++static const WCHAR SP_FINALPOLICY_FUNCTION[] = {'S','o','f','t','p','u','b','A','u','t','h','e','n','t','i','c','o','d','e', 0};
++static const WCHAR SP_CLEANUPPOLICY_FUNCTION[] = {'S','o','f','t','p','u','b','C','l','e','a','n','u','p', 0};
+ #elif defined(_MSC_VER)
+ #define SP_INIT_FUNCTION          L"SoftpubInitialize"
+@@ -148,6 +138,5 @@ static const WCHAR SP_CLEANUPPOLICY_FUNCTION[] =
+ 
+ #if defined(__GNUC__)
+-#define SP_TESTDUMPPOLICY_FUNCTION_TEST (const WCHAR []) \
+-    {'S','o','f','t','p','u','b','D','u','m','p','S','t','r','u','c','t','u','r','e', 0}
++static const WCHAR SP_TESTDUMPPOLICY_FUNCTION_TEST[] = {'S','o','f','t','p','u','b','D','u','m','p','S','t','r','u','c','t','u','r','e', 0};
+ #elif defined(_MSC_VER)
+ #define SP_TESTDUMPPOLICY_FUNCTION_TEST L"SoftpubDumpStructure"
+@@ -161,8 +150,6 @@ static const WCHAR SP_TESTDUMPPOLICY_FUNCTION_TEST[] =
+ 
+ #if defined(__GNUC__)
+-#define HTTPS_CERTTRUST_FUNCTION (const WCHAR []) \
+-    {'H','T','T','P','S','C','e','r','t','i','f','i','c','a','t','e','T','r','u','s','t', 0}
+-#define HTTPS_FINALPOLICY_FUNCTION (const WCHAR []) \
+-    {'H','T','T','P','S','F','i','n','a','l','P','r','o','v', 0}
++static const WCHAR HTTPS_CERTTRUST_FUNCTION[] = {'H','T','T','P','S','C','e','r','t','i','f','i','c','a','t','e','T','r','u','s','t', 0};
++static const WCHAR HTTPS_FINALPOLICY_FUNCTION[] = {'H','T','T','P','S','F','i','n','a','l','P','r','o','v', 0};
+ #elif defined(_MSC_VER)
+ #define HTTPS_FINALPOLICY_FUNCTION L"HTTPSFinalProv"
+@@ -179,10 +166,7 @@ static const WCHAR HTTPS_FINALPOLICY_FUNCTION[] =
+ 
+ #if defined(__GNUC__)
+-#define OFFICE_POLICY_PROVIDER_DLL_NAME (const WCHAR []) \
+-    {'W','I','N','T','R','U','S','T','.','D','L','L' ,0}
+-#define OFFICE_INITPROV_FUNCTION (const WCHAR []) \
+-    {'O','f','f','i','c','e','I','n','i','t','i','a','l','i','z','e','P','o','l','i','c','y', 0}
+-#define OFFICE_CLEANUPPOLICY_FUNCTION (const WCHAR []) \
+-    {'O','f','f','i','c','e','C','l','e','a','n','u','p','P','o','l','i','c','y', 0}
++static const WCHAR OFFICE_POLICY_PROVIDER_DLL_NAME[] = {'W','I','N','T','R','U','S','T','.','D','L','L' ,0};
++static const WCHAR OFFICE_INITPROV_FUNCTION[] = {'O','f','f','i','c','e','I','n','i','t','i','a','l','i','z','e','P','o','l','i','c','y', 0};
++static const WCHAR OFFICE_CLEANUPPOLICY_FUNCTION[] = {'O','f','f','i','c','e','C','l','e','a','n','u','p','P','o','l','i','c','y', 0};
+ #elif defined(_MSC_VER)
+ #define     OFFICE_POLICY_PROVIDER_DLL_NAME SP_POLICY_PROVIDER_DLL_NAME
+@@ -202,10 +186,7 @@ static const WCHAR OFFICE_CLEANUPPOLICY_FUNCTION[] =
+ 
+ #if defined(__GNUC__)
+-#define DRIVER_INITPROV_FUNCTION (const WCHAR []) \
+-    {'D','r','i','v','e','r','I','n','i','t','i','a','l','i','z','e','P','o','l','i','c','y', 0}
+-#define DRIVER_FINALPOLPROV_FUNCTION (const WCHAR []) \
+-    {'D','r','i','v','e','r','F','i','n','a','l','P','o','l','i','c','y', 0}
+-#define DRIVER_CLEANUPPOLICY_FUNCTION (const WCHAR []) \
+-    {'D','r','i','v','e','r','C','l','e','a','n','u','p','P','o','l','i','c','y', 0}
++static const WCHAR DRIVER_INITPROV_FUNCTION[] = {'D','r','i','v','e','r','I','n','i','t','i','a','l','i','z','e','P','o','l','i','c','y', 0};
++static const WCHAR DRIVER_FINALPOLPROV_FUNCTION[] = {'D','r','i','v','e','r','F','i','n','a','l','P','o','l','i','c','y', 0};
++static const WCHAR DRIVER_CLEANUPPOLICY_FUNCTION[] = {'D','r','i','v','e','r','C','l','e','a','n','u','p','P','o','l','i','c','y', 0};
+ #elif defined(_MSC_VER)
+ #define     DRIVER_INITPROV_FUNCTION      L"DriverInitializePolicy"
+diff --git a/include/uxtheme.h b/include/uxtheme.h
+index a35f4ae48a6..f48cf1ed95f 100644
+--- a/include/uxtheme.h
++++ b/include/uxtheme.h
+@@ -116,8 +116,8 @@ HRESULT WINAPI GetThemeColor(HTHEME,int,int,int,COLORREF*);
+ 
+ #if defined(__GNUC__)
+-# define SZ_THDOCPROP_DISPLAYNAME   (const WCHAR []){ 'D','i','s','p','l','a','y','N','a','m','e',0 }
+-# define SZ_THDOCPROP_CANONICALNAME (const WCHAR []){ 'T','h','e','m','e','N','a','m','e',0 }
+-# define SZ_THDOCPROP_TOOLTIP       (const WCHAR []){ 'T','o','o','l','T','i','p',0 }
+-# define SZ_THDOCPROP_AUTHOR        (const WCHAR []){ 'a','u','t','h','o','r',0 }
++static const WCHAR SZ_THDOCPROP_DISPLAYNAME[] = { 'D','i','s','p','l','a','y','N','a','m','e',0 };
++static const WCHAR SZ_THDOCPROP_CANONICALNAME[] = { 'T','h','e','m','e','N','a','m','e',0 };
++static const WCHAR SZ_THDOCPROP_TOOLTIP[] = { 'T','o','o','l','T','i','p',0 };
++static const WCHAR SZ_THDOCPROP_AUTHOR[] = { 'a','u','t','h','o','r',0 };
+ #elif defined(_MSC_VER)
+ # define SZ_THDOCPROP_DISPLAYNAME   L"DisplayName"
+diff --git a/include/vsstyle.h b/include/vsstyle.h
+index e6fb1a373a4..c32feaf5aa6 100644
+--- a/include/vsstyle.h
++++ b/include/vsstyle.h
+@@ -26,6 +26,6 @@
+ /* AEROWIZARDSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_AEROWIZARDSTYLE (const WCHAR []){'A','E','R','O','W','I','Z','A','R','D','S','T','Y','L','E',0}
+-#define VSCLASS_AEROWIZARD (const WCHAR []){'A','E','R','O','W','I','Z','A','R','D',0}
++static const WCHAR VSCLASS_AEROWIZARDSTYLE[] = {'A','E','R','O','W','I','Z','A','R','D','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_AEROWIZARD[] = {'A','E','R','O','W','I','Z','A','R','D',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_AEROWIZARDSTYLE L"AEROWIZARDSTYLE"
+@@ -61,6 +61,6 @@ enum CONTENTAREASTATES {
+ /* BUTTONSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_BUTTONSTYLE (const WCHAR []){'B','U','T','T','O','N','S','T','Y','L','E',0}
+-#define VSCLASS_BUTTON (const WCHAR []){'B','U','T','T','O','N',0}
++static const WCHAR VSCLASS_BUTTONSTYLE[] = {'B','U','T','T','O','N','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_BUTTON[] = {'B','U','T','T','O','N',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_BUTTONSTYLE L"BUTTONSTYLE"
+@@ -150,6 +150,6 @@ enum COMMANDLINKGLYPHSTATES {
+ /* COMBOBOXSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_COMBOBOXSTYLE (const WCHAR []){'C','O','M','B','O','B','O','X','S','T','Y','L','E',0}
+-#define VSCLASS_COMBOBOX (const WCHAR []){'C','O','M','B','O','B','O','X',0}
++static const WCHAR VSCLASS_COMBOBOXSTYLE[] = {'C','O','M','B','O','B','O','X','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_COMBOBOX[] = {'C','O','M','B','O','B','O','X',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_COMBOBOXSTYLE L"COMBOBOXSTYLE"
+@@ -224,6 +224,6 @@ enum CUEBANNERSTATES {
+ /* COMMUNICATIONSSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_COMMUNICATIONSSTYLE (const WCHAR []){'C','O','M','M','U','N','I','C','A','T','I','O','N','S','S','T','Y','L','E',0}
+-#define VSCLASS_COMMUNICATIONS (const WCHAR []){'C','O','M','M','U','N','I','C','A','T','I','O','N','S',0}
++static const WCHAR VSCLASS_COMMUNICATIONSSTYLE[] = {'C','O','M','M','U','N','I','C','A','T','I','O','N','S','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_COMMUNICATIONS[] = {'C','O','M','M','U','N','I','C','A','T','I','O','N','S',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_COMMUNICATIONSSTYLE L"COMMUNICATIONSSTYLE"
+@@ -248,6 +248,6 @@ enum TABSTATES {
+ /* CONTROLPANELSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_CONTROLPANELSTYLE (const WCHAR []){'C','O','N','T','R','O','L','P','A','N','E','L','S','T','Y','L','E',0}
+-#define VSCLASS_CONTROLPANEL (const WCHAR []){'C','O','N','T','R','O','L','P','A','N','E','L',0}
++static const WCHAR VSCLASS_CONTROLPANELSTYLE[] = {'C','O','N','T','R','O','L','P','A','N','E','L','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_CONTROLPANEL[] = {'C','O','N','T','R','O','L','P','A','N','E','L',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_CONTROLPANELSTYLE L"CONTROLPANELSTYLE"
+@@ -311,6 +311,6 @@ enum SECTIONTITLELINKSTATES {
+ /* DATEPICKERSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_DATEPICKERSTYLE (const WCHAR []){'D','A','T','E','P','I','C','K','E','R','S','T','Y','L','E',0}
+-#define VSCLASS_DATEPICKER (const WCHAR []){'D','A','T','E','P','I','C','K','E','R',0}
++static const WCHAR VSCLASS_DATEPICKERSTYLE[] = {'D','A','T','E','P','I','C','K','E','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_DATEPICKER[] = {'D','A','T','E','P','I','C','K','E','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_DATEPICKERSTYLE L"DATEPICKERSTYLE"
+@@ -351,6 +351,6 @@ enum SHOWCALENDARBUTTONRIGHTSTATES {
+ /* DRAGDROPSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_DRAGDROPSTYLE (const WCHAR []){'D','R','A','G','D','R','O','P','S','T','Y','L','E',0}
+-#define VSCLASS_DRAGDROP (const WCHAR []){'D','R','A','G','D','R','O','P',0}
++static const WCHAR VSCLASS_DRAGDROPSTYLE[] = {'D','R','A','G','D','R','O','P','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_DRAGDROP[] = {'D','R','A','G','D','R','O','P',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_DRAGDROPSTYLE L"DRAGDROPSTYLE"
+@@ -406,6 +406,6 @@ enum NONESTATES {
+ /* EDITSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_EDITSTYLE (const WCHAR []){'E','D','I','T','S','T','Y','L','E',0}
+-#define VSCLASS_EDIT (const WCHAR []){'E','D','I','T',0}
++static const WCHAR VSCLASS_EDITSTYLE[] = {'E','D','I','T','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_EDIT[] = {'E','D','I','T',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_EDITSTYLE L"EDITSTYLE"
+@@ -487,6 +487,6 @@ enum EDITBORDER_HVSCROLLSTATES {
+ /* EXPLORERBARSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_EXPLORERBARSTYLE (const WCHAR []){'E','X','P','L','O','R','E','R','B','A','R','S','T','Y','L','E',0}
+-#define VSCLASS_EXPLORERBAR (const WCHAR []){'E','X','P','L','O','R','E','R','B','A','R',0}
++static const WCHAR VSCLASS_EXPLORERBARSTYLE[] = {'E','X','P','L','O','R','E','R','B','A','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_EXPLORERBAR[] = {'E','X','P','L','O','R','E','R','B','A','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_EXPLORERBARSTYLE L"EXPLORERBARSTYLE"
+@@ -561,6 +561,6 @@ enum SPECIALGROUPEXPANDSTATES {
+ /* FLYOUTSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_FLYOUTSTYLE (const WCHAR []){'F','L','Y','O','U','T','S','T','Y','L','E',0}
+-#define VSCLASS_FLYOUT (const WCHAR []){'F','L','Y','O','U','T',0}
++static const WCHAR VSCLASS_FLYOUTSTYLE[] = {'F','L','Y','O','U','T','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_FLYOUT[] = {'F','L','Y','O','U','T',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_FLYOUTSTYLE L"FLYOUTSTYLE"
+@@ -608,6 +608,6 @@ enum LINKHEADERSTATES {
+ /* HEADERSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_HEADERSTYLE (const WCHAR []){'H','E','A','D','E','R','S','T','Y','L','E',0}
+-#define VSCLASS_HEADER (const WCHAR []){'H','E','A','D','E','R',0}
++static const WCHAR VSCLASS_HEADERSTYLE[] = {'H','E','A','D','E','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_HEADER[] = {'H','E','A','D','E','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_HEADERSTYLE L"HEADERSTYLE"
+@@ -686,6 +686,6 @@ enum HEADEROVERFLOWSTATES {
+ /* LISTBOXSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_LISTBOXSTYLE (const WCHAR []){'L','I','S','T','B','O','X','S','T','Y','L','E',0}
+-#define VSCLASS_LISTBOX (const WCHAR []){'L','I','S','T','B','O','X',0}
++static const WCHAR VSCLASS_LISTBOXSTYLE[] = {'L','I','S','T','B','O','X','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_LISTBOX[] = {'L','I','S','T','B','O','X',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_LISTBOXSTYLE L"LISTBOXSTYLE"
+@@ -743,6 +743,6 @@ enum ITEMSTATES {
+ /* LISTVIEWSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_LISTVIEWSTYLE (const WCHAR []){'L','I','S','T','V','I','E','W','S','T','Y','L','E',0}
+-#define VSCLASS_LISTVIEW (const WCHAR []){'L','I','S','T','V','I','E','W',0}
++static const WCHAR VSCLASS_LISTVIEWSTYLE[] = {'L','I','S','T','V','I','E','W','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_LISTVIEW[] = {'L','I','S','T','V','I','E','W',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_LISTVIEWSTYLE L"LISTVIEWSTYLE"
+@@ -829,6 +829,6 @@ enum COLLAPSEBUTTONSTATES {
+ /* MENUSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_MENUSTYLE (const WCHAR []){'M','E','N','U','S','T','Y','L','E',0}
+-#define VSCLASS_MENU (const WCHAR []){'M','E','N','U',0}
++static const WCHAR VSCLASS_MENUSTYLE[] = {'M','E','N','U','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_MENU[] = {'M','E','N','U',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_MENUSTYLE L"MENUSTYLE"
+@@ -925,5 +925,5 @@ enum SYSTEMRESTORESTATES {
+ /* NAVIGATION class */
+ #if defined(__GNUC__)
+-#define VSCLASS_NAVIGATION (const WCHAR []){'N','A','V','I','G','A','T','I','O','N',0}
++static const WCHAR VSCLASS_NAVIGATION[] = {'N','A','V','I','G','A','T','I','O','N',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_NAVIGATION L"NAVIGATION"
+@@ -961,6 +961,6 @@ enum NAV_MENUBUTTONSTATES {
+ /* PROGRESSSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_PROGRESSSTYLE (const WCHAR []){'P','R','O','G','R','E','S','S','S','T','Y','L','E',0}
+-#define VSCLASS_PROGRESS (const WCHAR []){'P','R','O','G','R','E','S','S',0}
++static const WCHAR VSCLASS_PROGRESSSTYLE[] = {'P','R','O','G','R','E','S','S','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_PROGRESS[] = {'P','R','O','G','R','E','S','S',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_PROGRESSSTYLE L"PROGRESSSTYLE"
+@@ -1014,6 +1014,6 @@ enum FILLVERTSTATES {
+ /* REBARSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_REBARSTYLE (const WCHAR []){'R','E','B','A','R','S','T','Y','L','E',0}
+-#define VSCLASS_REBAR (const WCHAR []){'R','E','B','A','R',0}
++static const WCHAR VSCLASS_REBARSTYLE[] = {'R','E','B','A','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_REBAR[] = {'R','E','B','A','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_REBARSTYLE L"REBARSTYLE"
+@@ -1063,6 +1063,6 @@ enum SPLITTERVERTSTATES {
+ /* SCROLLBARSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_SCROLLBARSTYLE (const WCHAR []){'S','C','R','O','L','L','B','A','R','S','T','Y','L','E',0}
+-#define VSCLASS_SCROLLBAR (const WCHAR []){'S','C','R','O','L','L','B','A','R',0}
++static const WCHAR VSCLASS_SCROLLBARSTYLE[] = {'S','C','R','O','L','L','B','A','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_SCROLLBAR[] = {'S','C','R','O','L','L','B','A','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_SCROLLBARSTYLE L"SCROLLBARSTYLE"
+@@ -1132,5 +1132,5 @@ enum SIZEBOXSTATES {
+ /* SPINSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_SPINSTYLE (const WCHAR []){'S','P','I','N','S','T','Y','L','E',0}
++static const WCHAR VSCLASS_SPINSTYLE[] = {'S','P','I','N','S','T','Y','L','E',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_SPINSTYLE L"SPINSTYLE"
+@@ -1139,5 +1139,5 @@ static const WCHAR VSCLASS_SPINSTYLE [] = {'S','P','I','N','S','T','Y','L','E',0
+ #endif
+ #if defined(__GNUC__)
+-#define VSCLASS_SPIN (const WCHAR []){'S','P','I','N',0}
++static const WCHAR VSCLASS_SPIN[] = {'S','P','I','N',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_SPIN L"SPIN"
+@@ -1185,6 +1185,6 @@ enum DOWNHORZSTATES {
+ /* STATUSSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_STATUSSTYLE (const WCHAR []){'S','T','A','T','U','S','S','T','Y','L','E',0}
+-#define VSCLASS_STATUS (const WCHAR []){'S','T','A','T','U','S',0}
++static const WCHAR VSCLASS_STATUSSTYLE[] = {'S','T','A','T','U','S','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_STATUS[] = {'S','T','A','T','U','S',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_STATUSSTYLE L"STATUSSTYLE"
+@@ -1205,6 +1205,6 @@ enum STATUSPARTS {
+ /* TABSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TABSTYLE (const WCHAR []){'T','A','B','S','T','Y','L','E',0}
+-#define VSCLASS_TAB (const WCHAR []){'T','A','B',0}
++static const WCHAR VSCLASS_TABSTYLE[] = {'T','A','B','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_TAB[] = {'T','A','B',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TABSTYLE L"TABSTYLE"
+@@ -1297,6 +1297,6 @@ enum TOPTABITEMBOTHEDGESTATES {
+ /* TASKDIALOGSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TASKDIALOGSTYLE (const WCHAR []){'T','A','S','K','D','I','A','L','O','G','S','T','Y','L','E',0}
+-#define VSCLASS_TASKDIALOG (const WCHAR []){'T','A','S','K','D','I','A','L','O','G',0}
++static const WCHAR VSCLASS_TASKDIALOGSTYLE[] = {'T','A','S','K','D','I','A','L','O','G','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_TASKDIALOG[] = {'T','A','S','K','D','I','A','L','O','G',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TASKDIALOGSTYLE L"TASKDIALOGSTYLE"
+@@ -1348,5 +1348,5 @@ enum EXPANDOBUTTONSTATES {
+ /* TEXTSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TEXTSTYLE (const WCHAR []){'T','E','X','T','S','T','Y','L','E',0}
++static const WCHAR VSCLASS_TEXTSTYLE[] = {'T','E','X','T','S','T','Y','L','E',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TEXTSTYLE L"TEXTSTYLE"
+@@ -1381,6 +1381,6 @@ enum CONTROLLABELSTATES {
+ /* TOOLBARSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TOOLBARSTYLE (const WCHAR []){'T','O','O','L','B','A','R','S','T','Y','L','E',0}
+-#define VSCLASS_TOOLBAR (const WCHAR []){'T','O','O','L','B','A','R',0}
++static const WCHAR VSCLASS_TOOLBARSTYLE[] = {'T','O','O','L','B','A','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_TOOLBAR[] = {'T','O','O','L','B','A','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TOOLBARSTYLE L"TOOLBARSTYLE"
+@@ -1415,6 +1415,6 @@ enum TOOLBARSTYLESTATES {
+ /* TOOLTIPSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TOOLTIPSTYLE (const WCHAR []){'T','O','O','L','T','I','P','S','T','Y','L','E',0}
+-#define VSCLASS_TOOLTIP (const WCHAR []){'T','O','O','L','T','I','P',0}
++static const WCHAR VSCLASS_TOOLTIPSTYLE[] = {'T','O','O','L','T','I','P','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_TOOLTIP[] = {'T','O','O','L','T','I','P',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TOOLTIPSTYLE L"TOOLTIPSTYLE"
+@@ -1463,6 +1463,6 @@ enum BALLOONSTEMSTATES {
+ /* TRACKBARSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TRACKBARSTYLE (const WCHAR []){'T','R','A','C','K','B','A','R','S','T','Y','L','E',0}
+-#define VSCLASS_TRACKBAR (const WCHAR []){'T','R','A','C','K','B','A','R',0}
++static const WCHAR VSCLASS_TRACKBARSTYLE[] = {'T','R','A','C','K','B','A','R','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_TRACKBAR[] = {'T','R','A','C','K','B','A','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TRACKBARSTYLE L"TRACKBARSTYLE"
+@@ -1558,6 +1558,6 @@ enum TICSVERTSTATES {
+ /* TREEVIEWSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TREEVIEWSTYLE (const WCHAR []){'T','R','E','E','V','I','E','W','S','T','Y','L','E',0}
+-#define VSCLASS_TREEVIEW (const WCHAR []){'T','R','E','E','V','I','E','W',0}
++static const WCHAR VSCLASS_TREEVIEWSTYLE[] = {'T','R','E','E','V','I','E','W','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_TREEVIEW[] = {'T','R','E','E','V','I','E','W',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TREEVIEWSTYLE L"TREEVIEWSTYLE"
+@@ -1598,6 +1598,6 @@ enum HOTGLYPHSTATES {
+ /* WINDOWSTYLE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_WINDOWSTYLE (const WCHAR []){'W','I','N','D','O','W','S','T','Y','L','E',0}
+-#define VSCLASS_WINDOW (const WCHAR []){'W','I','N','D','O','W',0}
++static const WCHAR VSCLASS_WINDOWSTYLE[] = {'W','I','N','D','O','W','S','T','Y','L','E',0};
++static const WCHAR VSCLASS_WINDOW[] = {'W','I','N','D','O','W',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_WINDOWSTYLE L"WINDOWSTYLE"
+diff --git a/include/vssym32.h b/include/vssym32.h
+index 3536462c1a2..10fdac781af 100644
+--- a/include/vssym32.h
++++ b/include/vssym32.h
+@@ -380,5 +380,5 @@ enum GLYPHFONTSIZINGTYPE {
+ /* LINK class */
+ #if defined(__GNUC__)
+-#define VSCLASS_LINK (const WCHAR []){'L','I','N','K',0}
++static const WCHAR VSCLASS_LINK[] = {'L','I','N','K',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_LINK L"LINK"
+@@ -398,5 +398,5 @@ enum HYPERLINKSTATES {
+ /* EMPTYMARKUP class */
+ #if defined(__GNUC__)
+-#define VSCLASS_EMPTYMARKUP (const WCHAR []){'E','M','P','T','Y','M','A','R','K','U','P',0}
++static const WCHAR VSCLASS_EMPTYMARKUP[] = {'E','M','P','T','Y','M','A','R','K','U','P',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_EMPTYMARKUP L"EMPTYMARKUP"
+@@ -416,5 +416,5 @@ enum MARKUPTEXTSTATES {
+ /* STATIC class */
+ #if defined(__GNUC__)
+-#define VSCLASS_STATIC (const WCHAR []){'S','T','A','T','I','C',0}
++static const WCHAR VSCLASS_STATIC[] = {'S','T','A','T','I','C',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_STATIC L"STATIC"
+@@ -429,5 +429,5 @@ enum STATICPARTS {
+ /* PAGE class */
+ #if defined(__GNUC__)
+-#define VSCLASS_PAGE (const WCHAR []){'P','A','G','E',0}
++static const WCHAR VSCLASS_PAGE[] = {'P','A','G','E',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_PAGE L"PAGE"
+@@ -445,5 +445,5 @@ enum PAGEPARTS {
+ /* MONTHCAL class */
+ #if defined(__GNUC__)
+-#define VSCLASS_MONTHCAL (const WCHAR []){'M','O','N','T','H','C','A','L',0}
++static const WCHAR VSCLASS_MONTHCAL[] = {'M','O','N','T','H','C','A','L',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_MONTHCAL L"MONTHCAL"
+@@ -516,5 +516,5 @@ enum NAVPREVSTATES {
+ /* CLOCK class */
+ #if defined(__GNUC__)
+-#define VSCLASS_CLOCK (const WCHAR []){'C','L','O','C','K',0}
++static const WCHAR VSCLASS_CLOCK[] = {'C','L','O','C','K',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_CLOCK L"CLOCK"
+@@ -533,5 +533,5 @@ enum CLOCKSTATES {
+ /* TRAYNOTIFY class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TRAYNOTIFY (const WCHAR []){'T','R','A','Y','N','O','T','I','F','Y',0}
++static const WCHAR VSCLASS_TRAYNOTIFY[] = {'T','R','A','Y','N','O','T','I','F','Y',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TRAYNOTIFY L"TRAYNOTIFY"
+@@ -547,5 +547,5 @@ enum TRAYNOTIFYPARTS {
+ /* TASKBAR class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TASKBAR (const WCHAR []){'T','A','S','K','B','A','R',0}
++static const WCHAR VSCLASS_TASKBAR[] = {'T','A','S','K','B','A','R',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TASKBAR L"TASKBAR"
+@@ -567,5 +567,5 @@ enum TASKBARPARTS {
+ /* TASKBAND class */
+ #if defined(__GNUC__)
+-#define VSCLASS_TASKBAND (const WCHAR []){'T','A','S','K','B','A','N','D',0}
++static const WCHAR VSCLASS_TASKBAND[] = {'T','A','S','K','B','A','N','D',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_TASKBAND L"TASKBAND"
+@@ -582,5 +582,5 @@ enum TASKBANDPARTS {
+ /* STARTPANEL class */
+ #if defined(__GNUC__)
+-#define VSCLASS_STARTPANEL (const WCHAR []){'S','T','A','R','T','P','A','N','E','L',0}
++static const WCHAR VSCLASS_STARTPANEL[] = {'S','T','A','R','T','P','A','N','E','L',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_STARTPANEL L"STARTPANEL"
+@@ -655,5 +655,5 @@ enum LOGOFFBUTTONSSTATES {
+ /* MENUBAND class */
+ #if defined(__GNUC__)
+-#define VSCLASS_MENUBAND (const WCHAR []){'M','E','N','U','B','A','N','D',0}
++static const WCHAR VSCLASS_MENUBAND[] = {'M','E','N','U','B','A','N','D',0};
+ #elif defined(_MSC_VER)
+ #define VSCLASS_MENUBAND L"MENUBAND"
+diff --git a/include/wincrypt.h b/include/wincrypt.h
+index a1b13059028..13f4f37a7b0 100644
+--- a/include/wincrypt.h
++++ b/include/wincrypt.h
+@@ -1248,11 +1248,11 @@ typedef BOOL (WINAPI *PFN_CRYPT_ENUM_OID_FUNC)(DWORD dwEncodingType,
+ #define CALG_OID_INFO_PARAMETERS 0xfffffffe
+ 
+-#define CRYPT_OID_INFO_HASH_PARAMETERS_ALGORITHM     (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','H','a','s','h','P','a','r','a','m','e','t','e','r','s',0}
+-#define CRYPT_OID_INFO_ECC_PARAMETERS_ALGORITHM      (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','E','C','C','P','a','r','a','m','e','t','e','r','s',0}
+-#define CRYPT_OID_INFO_MGF1_PARAMETERS_ALGORITHM     (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','M','g','f','1','P','a','r','a','m','e','t','e','r','s',0}
+-#define CRYPT_OID_INFO_NO_SIGN_ALGORITHM             (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','N','o','S','i','g','n',0}
+-#define CRYPT_OID_INFO_OAEP_PARAMETERS_ALGORITHM     (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','O','A','E','P','P','a','r','a','m','e','t','e','r','s',0}
+-#define CRYPT_OID_INFO_ECC_WRAP_PARAMETERS_ALGORITHM (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','E','C','C','W','r','a','p','P','a','r','a','m','e','t','e','r','s',0}
+-#define CRYPT_OID_INFO_NO_PARAMETERS_ALGORITHM       (const WCHAR []){'C','r','y','p','t','O','I','D','I','n','f','o','N','o','P','a','r','a','m','e','t','e','r','s',0}
++static const WCHAR CRYPT_OID_INFO_HASH_PARAMETERS_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','H','a','s','h','P','a','r','a','m','e','t','e','r','s',0};
++static const WCHAR CRYPT_OID_INFO_ECC_PARAMETERS_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','E','C','C','P','a','r','a','m','e','t','e','r','s',0};
++static const WCHAR CRYPT_OID_INFO_MGF1_PARAMETERS_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','M','g','f','1','P','a','r','a','m','e','t','e','r','s',0};
++static const WCHAR CRYPT_OID_INFO_NO_SIGN_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','N','o','S','i','g','n',0};
++static const WCHAR CRYPT_OID_INFO_OAEP_PARAMETERS_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','O','A','E','P','P','a','r','a','m','e','t','e','r','s',0};
++static const WCHAR CRYPT_OID_INFO_ECC_WRAP_PARAMETERS_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','E','C','C','W','r','a','p','P','a','r','a','m','e','t','e','r','s',0};
++static const WCHAR CRYPT_OID_INFO_NO_PARAMETERS_ALGORITHM[] = {'C','r','y','p','t','O','I','D','I','n','f','o','N','o','P','a','r','a','m','e','t','e','r','s',0};
+ 
+ typedef struct _CRYPT_OID_INFO {
+@@ -1700,7 +1700,5 @@ typedef const CERT_CRL_CONTEXT_PAIR *PCCERT_CRL_CONTEXT_PAIR;
+ #define MS_DEF_PROV_A                            "Microsoft Base Cryptographic Provider v1.0"
+ #if defined(__GNUC__)
+-# define MS_DEF_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'B','a','s','e',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ', \
+-	'P','r','o','v','i','d','e','r',' ','v','1','.','0',0 }
++static const WCHAR MS_DEF_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','B','a','s','e',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',' ','v','1','.','0',0 };
+ #elif defined(_MSC_VER)
+ # define MS_DEF_PROV_W      L"Microsoft Base Cryptographic Provider v1.0"
+@@ -1714,7 +1712,5 @@ static const WCHAR MS_DEF_PROV_W[] =             { 'M','i','c','r','o','s','o','
+ #define MS_ENHANCED_PROV_A                       "Microsoft Enhanced Cryptographic Provider v1.0"
+ #if defined(__GNUC__)
+-# define MS_ENHANCED_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'E','n','h','a','n','c','e','d',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ', \
+-	'P','r','o','v','i','d','e','r',' ','v','1','.','0',0 }
++static const WCHAR MS_ENHANCED_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','E','n','h','a','n','c','e','d',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',' ','v','1','.','0',0 };
+ #elif defined(_MSC_VER)
+ # define MS_ENHANCED_PROV_W     L"Microsoft Enhanced Cryptographic Provider v1.0"
+@@ -1728,7 +1724,5 @@ static const WCHAR MS_ENHANCED_PROV_W[] =        { 'M','i','c','r','o','s','o','
+ #define MS_STRONG_PROV_A                         "Microsoft Strong Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_STRONG_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'S','t','r','o','n','g',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ', \
+-	'P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_STRONG_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','S','t','r','o','n','g',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_STRONG_PROV_W     L"Microsoft Strong Cryptographic Provider"
+@@ -1742,7 +1736,5 @@ static const WCHAR MS_STRONG_PROV_W[] =          { 'M','i','c','r','o','s','o','
+ #define MS_DEF_RSA_SIG_PROV_A                    "Microsoft RSA Signature Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_DEF_RSA_SIG_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'R','S','A',' ','S','i','g','n','a','t','u','r','e',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_DEF_RSA_SIG_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','R','S','A',' ','S','i','g','n','a','t','u','r','e',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_DEF_RSA_SIG_PROV_W      L"Microsoft RSA Signature Cryptographic Provider"
+@@ -1756,7 +1748,5 @@ static const WCHAR MS_DEF_RSA_SIG_PROV_W[] =     { 'M','i','c','r','o','s','o','
+ #define MS_DEF_RSA_SCHANNEL_PROV_A               "Microsoft RSA SChannel Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_DEF_RSA_SCHANNEL_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'R','S','A',' ','S','C','h','a','n','n','e','l',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_DEF_RSA_SCHANNEL_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','R','S','A',' ','S','C','h','a','n','n','e','l',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_DEF_RSA_SCHANNEL_PROV_W     L"Microsoft RSA SChannel Cryptographic Provider"
+@@ -1770,7 +1760,5 @@ static const WCHAR MS_DEF_RSA_SCHANNEL_PROV_W[] = { 'M','i','c','r','o','s','o',
+ #define MS_DEF_DSS_PROV_A                        "Microsoft Base DSS Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_DEF_DSS_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'B','a','s','e',' ','D','S','S',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_DEF_DSS_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','B','a','s','e',' ','D','S','S',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_DEF_DSS_PROV_W     L"Microsoft Base DSS Cryptographic Provider"
+@@ -1784,8 +1772,5 @@ static const WCHAR MS_DEF_DSS_PROV_W[] =         { 'M','i','c','r','o','s','o','
+ #define MS_DEF_DSS_DH_PROV_A                     "Microsoft Base DSS and Diffie-Hellman Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_DEF_DSS_DH_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'B','a','s','e',' ','D','S','S',' ','a','n','d',' ', \
+-	'D','i','f','f','i','e','-','H','e','l','l','m','a','n',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_DEF_DSS_DH_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','B','a','s','e',' ','D','S','S',' ','a','n','d',' ','D','i','f','f','i','e','-','H','e','l','l','m','a','n',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_DEF_DSS_DH_PROV_W     L"Microsoft Base DSS and Diffie-Hellman Cryptographic Provider"
+@@ -1800,8 +1785,5 @@ static const WCHAR MS_DEF_DSS_DH_PROV_W[] =      { 'M','i','c','r','o','s','o','
+ #define MS_ENH_DSS_DH_PROV_A                     "Microsoft Enhanced DSS and Diffie-Hellman Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_ENH_DSS_DH_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'E','n','h','a','n','c','e','d',' ','D','S','S',' ','a','n','d',' ', \
+-	'D','i','f','f','i','e','-','H','e','l','l','m','a','n',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_ENH_DSS_DH_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','E','n','h','a','n','c','e','d',' ','D','S','S',' ','a','n','d',' ','D','i','f','f','i','e','-','H','e','l','l','m','a','n',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_ENH_DSS_DH_PROV_W     L"Microsoft Enhanced DSS and Diffie-Hellman Cryptographic Provider"
+@@ -1816,7 +1798,5 @@ static const WCHAR MS_ENH_DSS_DH_PROV_W[] =      { 'M','i','c','r','o','s','o','
+ #define MS_DEF_DH_SCHANNEL_PROV_A                "Microsoft DH SChannel Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_DEF_DH_SCHANNEL_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'D','H',' ','S','C','h','a','n','n','e','l',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_DEF_DH_SCHANNEL_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','D','H',' ','S','C','h','a','n','n','e','l',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_DEF_DH_SCHANNEL_PROV_W     L"Microsoft DH SChannel Cryptographic Provider"
+@@ -1830,7 +1810,5 @@ static const WCHAR MS_DEF_DH_SCHANNEL_PROV_W[] = { 'M','i','c','r','o','s','o','
+ #define MS_SCARD_PROV_A                          "Microsoft Base Smart Card Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_SCARD_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'B','a','s','e',' ','S','m','a','r','t',' ','C','a','r','d',' ', \
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_SCARD_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','B','a','s','e',' ','S','m','a','r','t',' ','C','a','r','d',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_SCARD_PROV_W     L"Microsoft Base Smart Card Cryptographic Provider"
+@@ -1844,7 +1822,5 @@ static const WCHAR MS_SCARD_PROV_W[] =           { 'M','i','c','r','o','s','o','
+ #define MS_ENH_RSA_AES_PROV_A                          "Microsoft Enhanced RSA and AES Cryptographic Provider"
+ #if defined(__GNUC__)
+-# define MS_ENH_RSA_AES_PROV_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-	'E','n','h','a','n','c','e','d',' ','R','S','A',' ','a','n','d',' ','A','E','S',' ',\
+-	'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 }
++static const WCHAR MS_ENH_RSA_AES_PROV_W[] = { 'M','i','c','r','o','s','o','f','t',' ','E','n','h','a','n','c','e','d',' ','R','S','A',' ','a','n','d',' ','A','E','S',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',0 };
+ #elif defined(_MSC_VER)
+ # define MS_ENH_RSA_AES_PROV_W     L"Microsoft Enhanced RSA and AES Cryptographic Provider"
+@@ -1858,8 +1834,5 @@ static const WCHAR MS_ENH_RSA_AES_PROV_W[] =           { 'M','i','c','r','o','s'
+ #define MS_ENH_RSA_AES_PROV_XP_A    "Microsoft Enhanced RSA and AES Cryptographic Provider (Prototype)"
+ #if defined(__GNUC__)
+-# define MS_ENH_RSA_AES_PROV_XP_W (const WCHAR []){ 'M','i','c','r','o','s','o','f','t',' ', \
+-        'E','n','h','a','n','c','e','d',' ','R','S','A',' ','a','n','d',' ','A','E','S',' ',\
+-        'C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',' ',\
+-        '(','P','r','o','t','o','t','y','p','e',')',0 }
++static const WCHAR MS_ENH_RSA_AES_PROV_XP_W[] = { 'M','i','c','r','o','s','o','f','t',' ','E','n','h','a','n','c','e','d',' ','R','S','A',' ','a','n','d',' ','A','E','S',' ','C','r','y','p','t','o','g','r','a','p','h','i','c',' ','P','r','o','v','i','d','e','r',' ','(','P','r','o','t','o','t','y','p','e',')',0 };
+ #elif defined(_MSC_VER)
+ # define MS_ENH_RSA_AES_PROV_XP_W   L"Microsoft Enhanced RSA and AES Cryptographic Provider (Prototype)"
+@@ -2180,12 +2153,6 @@ static const WCHAR MS_ENH_RSA_AES_PROV_XP_W[] = { 'M','i','c','r','o','s','o','f
+ 
+ #if defined(__GNUC__)
+-#define CERT_LOCAL_MACHINE_SYSTEM_STORE_REGPATH (const WCHAR[])\
+- {'S','o','f','t','w','a','r','e','\\','M','i','c','r','o','s','o','f','t',\
+-  '\\','S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s',\
+-  0 }
+-#define CERT_GROUP_POLICY_SYSTEM_STORE_REGPATH (const WCHAR[])\
+- {'S','o','f','t','w','a','r','e','\\','P','o','l','i','c','i','e','s','\\',\
+-  'M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r',\
+-  't','i','f','i','c','a','t','e','s',0 }
++static const WCHAR CERT_LOCAL_MACHINE_SYSTEM_STORE_REGPATH[] = {'S','o','f','t','w','a','r','e','\\','M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s',0 };
++static const WCHAR CERT_GROUP_POLICY_SYSTEM_STORE_REGPATH[] = {'S','o','f','t','w','a','r','e','\\','P','o','l','i','c','i','e','s','\\','M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s',0 };
+ #elif defined(_MSC_VER)
+ #define CERT_LOCAL_MACHINE_SYSTEM_STORE_REGPATH \
+@@ -2204,9 +2171,6 @@ static const WCHAR CERT_GROUP_POLICY_SYSTEM_STORE_REGPATH[] =
+ 
+ #if defined(__GNUC__)
+-#define CERT_EFSBLOB_REGPATH (const WCHAR[])\
+-{'S','o','f','t','w','a','r','e','\\','P','o','l','i','c','i','e','s','\\',\
+- 'M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r',\
+- 't','i','f','i','c','a','t','e','s','\\','E','F','S',0 }
+-#define CERT_EFSBLOB_VALUE_NAME (const WCHAR[]) {'E','F','S','B','l','o','b',0 }
++static const WCHAR CERT_EFSBLOB_REGPATH[] = {'S','o','f','t','w','a','r','e','\\','P','o','l','i','c','i','e','s','\\','M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s','\\','E','F','S',0 };
++static const WCHAR CERT_EFSBLOB_VALUE_NAME[] =  {'E','F','S','B','l','o','b',0 };
+ #elif defined(_MSC_VER)
+ #define CERT_EFSBLOB_REGPATH CERT_GROUP_POLICY_SYSTEM_STORE_REGPATH L"\\EFS"
+@@ -2221,9 +2185,6 @@ static const WCHAR CERT_EFSBLOB_VALUE_NAME[] = { 'E','F','S','B','l','o','b',0 }
+ 
+ #if defined(__GNUC__)
+-#define CERT_PROT_ROOT_FLAGS_REGPATH (const WCHAR[])\
+-{'\\','R','o','o','t','\\','P','r','o','t','e','c','t','e','d','R','o','o','t',\
+- 's',0 }
+-#define CERT_PROT_ROOT_FLAGS_VALUE_NAME (const WCHAR[])\
+-{'F','l','a','g','s',0 }
++static const WCHAR CERT_PROT_ROOT_FLAGS_REGPATH[] = {'\\','R','o','o','t','\\','P','r','o','t','e','c','t','e','d','R','o','o','t','s',0 };
++static const WCHAR CERT_PROT_ROOT_FLAGS_VALUE_NAME[] = {'F','l','a','g','s',0 };
+ #elif defined(_MSC_VER)
+ #define CERT_PROT_ROOT_FLAGS_REGPATH L"\\Root\\ProtectedRoots"
+@@ -2244,9 +2205,5 @@ static const WCHAR CERT_PROT_ROOT_FLAGS_VALUE_NAME[] = {'F','l','a','g','s',0 };
+ 
+ #if defined(__GNUC__)
+-#define CERT_TRUST_PUB_SAFER_GROUP_POLICY_REGPATH (const WCHAR[])\
+-{'S','o','f','t','w','a','r','e','\\','P','o','l','i','c','i','e','s','\\',\
+- 'M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r',\
+- 't','i','f','i','c','a','t','e','s','\\','T','r','u','s','t','e','d',\
+- 'P','u','b','l','i','s','h','e','r','\\','S','a','f','e','r',0 }
++static const WCHAR CERT_TRUST_PUB_SAFER_GROUP_POLICY_REGPATH[] = {'S','o','f','t','w','a','r','e','\\','P','o','l','i','c','i','e','s','\\','M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s','\\','T','r','u','s','t','e','d','P','u','b','l','i','s','h','e','r','\\','S','a','f','e','r',0 };
+ #elif defined(_MSC_VER)
+ #define CERT_TRUST_PUB_SAFER_GROUP_POLICY_REGPATH \
+@@ -2261,11 +2218,6 @@ static const WCHAR CERT_TRUST_PUB_SAFER_GROUP_POLICY_REGPATH[] =
+ 
+ #if defined(__GNUC__)
+-#define CERT_TRUST_PUB_SAFER_LOCAL_MACHINE_REGPATH (const WCHAR[])\
+-{'S','o','f','t','w','a','r','e','\\','M','i','c','r','o','s','o','f','t','\\',\
+- 'S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s','\\',\
+- 'T','r','u','s','t','e','d','P','u','b','l','i','s','h','e','r','\\',\
+- 'S','a','f','e','r',0 }
+-#define CERT_TRUST_PUB_AUTHENTICODE_FLAGS_VALUE_NAME (const WCHAR[])\
+-{'A','u','t','h','e','n','t','i','c','o','d','e','F','l','a','g','s',0 };
++static const WCHAR CERT_TRUST_PUB_SAFER_LOCAL_MACHINE_REGPATH[] = {'S','o','f','t','w','a','r','e','\\','M','i','c','r','o','s','o','f','t','\\','S','y','s','t','e','m','C','e','r','t','i','f','i','c','a','t','e','s','\\','T','r','u','s','t','e','d','P','u','b','l','i','s','h','e','r','\\','S','a','f','e','r',0 };
++static const WCHAR CERT_TRUST_PUB_AUTHENTICODE_FLAGS_VALUE_NAME[] = {'A','u','t','h','e','n','t','i','c','o','d','e','F','l','a','g','s',0 };;
+ #elif defined(_MSC_VER)
+ #define CERT_TRUST_PUB_SAFER_LOCAL_MACHINE_REGPATH \
+@@ -2356,5 +2308,5 @@ static const WCHAR CERT_TRUST_PUB_AUTHENTICODE_FLAGS_VALUE_NAME[] =
+ #define CRYPT_OID_REG_ENCODING_TYPE_PREFIX "EncodingType "
+ #if defined(__GNUC__)
+-# define CRYPT_OID_REG_DLL_VALUE_NAME (const WCHAR []){ 'D','l','l',0 }
++static const WCHAR CRYPT_OID_REG_DLL_VALUE_NAME[] = { 'D','l','l',0 };
+ # define CRYPT_OID_REG_FUNC_NAME_VALUE_NAME \
+  (const WCHAR []){ 'F','u','n','c','N','a','m','e',0 }
+@@ -2428,19 +2380,11 @@ static const WCHAR CRYPT_OID_REG_FLAGS_VALUE_NAME[] =
+ /* predefined store names */
+ #if defined(__GNUC__)
+-# define CERT_PHYSICAL_STORE_DEFAULT_NAME (const WCHAR[])\
+- {'.','D','e','f','a','u','l','t','0'}
+-# define CERT_PHYSICAL_STORE_GROUP_POLICY_NAME (const WCHAR[])\
+- {'.','G','r','o','u','p','P','o','l','i','c','y',0}
+-# define CERT_PHYSICAL_STORE_LOCAL_MACHINE_NAME (const WCHAR[])\
+- {'.','L','o','c','a','l','M','a','c','h','i','n','e',0}
+-# define CERT_PHYSICAL_STORE_DS_USER_CERTIFICATE_NAME (const WCHAR[])\
+- {'.','U','s','e','r','C','e','r','t','i','f','i','c','a','t','e',0}
+-# define CERT_PHYSICAL_STORE_LOCAL_MACHINE_GROUP_POLICY_NAME (const WCHAR[])\
+- {'.','L','o','c','a','l','M','a','c','h','i','n','e','G','r','o','u','p',\
+- 'P','o','l','i','c','y',0}
+-# define CERT_PHYSICAL_STORE_ENTERPRISE_NAME (const WCHAR[])\
+- {'.','E','n','t','e','r','p','r','i','s','e',0}
+-# define CERT_PHYSICAL_STORE_AUTH_ROOT_NAME (const WCHAR[])\
+- {'.','A','u','t','h','R','o','o','t',0}
++static const WCHAR CERT_PHYSICAL_STORE_DEFAULT_NAME[] = {'.','D','e','f','a','u','l','t','0'};
++static const WCHAR CERT_PHYSICAL_STORE_GROUP_POLICY_NAME[] = {'.','G','r','o','u','p','P','o','l','i','c','y',0};
++static const WCHAR CERT_PHYSICAL_STORE_LOCAL_MACHINE_NAME[] = {'.','L','o','c','a','l','M','a','c','h','i','n','e',0};
++static const WCHAR CERT_PHYSICAL_STORE_DS_USER_CERTIFICATE_NAME[] = {'.','U','s','e','r','C','e','r','t','i','f','i','c','a','t','e',0};
++static const WCHAR CERT_PHYSICAL_STORE_LOCAL_MACHINE_GROUP_POLICY_NAME[] = {'.','L','o','c','a','l','M','a','c','h','i','n','e','G','r','o','u','p','P','o','l','i','c','y',0};
++static const WCHAR CERT_PHYSICAL_STORE_ENTERPRISE_NAME[] = {'.','E','n','t','e','r','p','r','i','s','e',0};
++static const WCHAR CERT_PHYSICAL_STORE_AUTH_ROOT_NAME[] = {'.','A','u','t','h','R','o','o','t',0};
+ #elif defined(_MSC_VER)
+ # define CERT_PHYSICAL_STORE_DEFAULT_NAME \
+diff --git a/include/winnls.h b/include/winnls.h
+index c8580bd67c2..e297c5e9cae 100644
+--- a/include/winnls.h
++++ b/include/winnls.h
+@@ -326,5 +326,5 @@ extern "C" {
+ /* Locale name special values */
+ #if defined(__GNUC__)
+-# define LOCALE_NAME_INVARIANT      (const WCHAR []){ 0 }
++static const WCHAR LOCALE_NAME_INVARIANT[] = { 0 };
+ #elif defined(_MSC_VER)
+ # define LOCALE_NAME_INVARIANT      L""
+@@ -334,5 +334,5 @@ static const WCHAR LOCALE_NAME_INVARIANT[] = { 0 };
+ 
+ #if defined(__GNUC__)
+-# define LOCALE_NAME_SYSTEM_DEFAULT      (const WCHAR []){'!','s','y','s','-','d','e','f','a','u','l','t','-','l','o','c','a','l','e',0}
++static const WCHAR LOCALE_NAME_SYSTEM_DEFAULT[] = {'!','s','y','s','-','d','e','f','a','u','l','t','-','l','o','c','a','l','e',0};
+ #elif defined(_MSC_VER)
+ # define LOCALE_NAME_SYSTEM_DEFAULT      L"!sys-default-locale"
+diff --git a/include/winnt.h b/include/winnt.h
+index 115cc294f73..f3597eedb8f 100644
+--- a/include/winnt.h
++++ b/include/winnt.h
+@@ -4157,33 +4157,33 @@ typedef struct _ACL_SIZE_INFORMATION
+ #define SE_CREATE_GLOBAL_NAME           L"SeCreateGlobalPrivilege"
+ #elif defined(__GNUC__)
+-#define SE_CREATE_TOKEN_NAME (const WCHAR []){ 'S','e','C','r','e','a','t','e','T','o','k','e','n','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_ASSIGNPRIMARYTOKEN_NAME (const WCHAR []){ 'S','e','A','s','s','i','g','n','P','r','i','m','a','r','y','T','o','k','e','n','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_LOCK_MEMORY_NAME (const WCHAR []){ 'S','e','L','o','c','k','M','e','m','o','r','y','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_INCREASE_QUOTA_NAME (const WCHAR []){ 'S','e','I','n','c','r','e','a','s','e','Q','u','o','t','a','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_UNSOLICITED_INPUT_NAME (const WCHAR []){ 'S','e','U','n','s','o','l','i','c','i','t','e','d','I','n','p','u','t','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_MACHINE_ACCOUNT_NAME (const WCHAR []){ 'S','e','M','a','c','h','i','n','e','A','c','c','o','u','n','t','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_TCB_NAME (const WCHAR []){ 'S','e','T','c','b','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_SECURITY_NAME (const WCHAR []){ 'S','e','S','e','c','u','r','i','t','y','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_TAKE_OWNERSHIP_NAME (const WCHAR []){ 'S','e','T','a','k','e','O','w','n','e','r','s','h','i','p','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_LOAD_DRIVER_NAME (const WCHAR []){ 'S','e','L','o','a','d','D','r','i','v','e','r','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_SYSTEM_PROFILE_NAME (const WCHAR []){ 'S','e','S','y','s','t','e','m','P','r','o','f','i','l','e','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_SYSTEMTIME_NAME (const WCHAR []){ 'S','e','S','y','s','t','e','m','t','i','m','e','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_PROF_SINGLE_PROCESS_NAME (const WCHAR []){ 'S','e','P','r','o','f','i','l','e','S','i','n','g','l','e','P','r','o','c','e','s','s','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_INC_BASE_PRIORITY_NAME (const WCHAR []){ 'S','e','I','n','c','r','e','a','s','e','B','a','s','e','P','r','i','o','r','i','t','y','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_CREATE_PAGEFILE_NAME (const WCHAR []){ 'S','e','C','r','e','a','t','e','P','a','g','e','f','i','l','e','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_CREATE_PERMANENT_NAME (const WCHAR []){ 'S','e','C','r','e','a','t','e','P','e','r','m','a','n','e','n','t','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_BACKUP_NAME (const WCHAR []){ 'S','e','B','a','c','k','u','p','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_RESTORE_NAME (const WCHAR []){ 'S','e','R','e','s','t','o','r','e','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_SHUTDOWN_NAME (const WCHAR []){ 'S','e','S','h','u','t','d','o','w','n','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_DEBUG_NAME (const WCHAR []){ 'S','e','D','e','b','u','g','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_AUDIT_NAME (const WCHAR []){ 'S','e','A','u','d','i','t','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_SYSTEM_ENVIRONMENT_NAME (const WCHAR []){ 'S','e','S','y','s','t','e','m','E','n','v','i','r','o','n','m','e','n','t','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_CHANGE_NOTIFY_NAME (const WCHAR []){ 'S','e','C','h','a','n','g','e','N','o','t','i','f','y','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_REMOTE_SHUTDOWN_NAME (const WCHAR []){ 'S','e','R','e','m','o','t','e','S','h','u','t','d','o','w','n','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_UNDOCK_NAME (const WCHAR []){ 'S','e','U','n','d','o','c','k','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_ENABLE_DELEGATION_NAME (const WCHAR []){ 'S','e','E','n','a','b','l','e','D','e','l','e','g','a','t','i','o','n','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_MANAGE_VOLUME_NAME (const WCHAR []){ 'S','e','M','a','n','a','g','e','V','o','l','u','m','e','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_IMPERSONATE_NAME (const WCHAR []){ 'S','e','I','m','p','e','r','s','o','n','a','t','e','P','r','i','v','i','l','e','g','e',0 }
+-#define SE_CREATE_GLOBAL_NAME (const WCHAR []){ 'S','e','C','r','e','a','t','e','G','l','o','b','a','l','P','r','i','v','i','l','e','g','e',0 }
++static const WCHAR SE_CREATE_TOKEN_NAME[] = { 'S','e','C','r','e','a','t','e','T','o','k','e','n','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_ASSIGNPRIMARYTOKEN_NAME[] = { 'S','e','A','s','s','i','g','n','P','r','i','m','a','r','y','T','o','k','e','n','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_LOCK_MEMORY_NAME[] = { 'S','e','L','o','c','k','M','e','m','o','r','y','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_INCREASE_QUOTA_NAME[] = { 'S','e','I','n','c','r','e','a','s','e','Q','u','o','t','a','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_UNSOLICITED_INPUT_NAME[] = { 'S','e','U','n','s','o','l','i','c','i','t','e','d','I','n','p','u','t','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_MACHINE_ACCOUNT_NAME[] = { 'S','e','M','a','c','h','i','n','e','A','c','c','o','u','n','t','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_TCB_NAME[] = { 'S','e','T','c','b','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_SECURITY_NAME[] = { 'S','e','S','e','c','u','r','i','t','y','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_TAKE_OWNERSHIP_NAME[] = { 'S','e','T','a','k','e','O','w','n','e','r','s','h','i','p','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_LOAD_DRIVER_NAME[] = { 'S','e','L','o','a','d','D','r','i','v','e','r','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_SYSTEM_PROFILE_NAME[] = { 'S','e','S','y','s','t','e','m','P','r','o','f','i','l','e','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_SYSTEMTIME_NAME[] = { 'S','e','S','y','s','t','e','m','t','i','m','e','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_PROF_SINGLE_PROCESS_NAME[] = { 'S','e','P','r','o','f','i','l','e','S','i','n','g','l','e','P','r','o','c','e','s','s','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_INC_BASE_PRIORITY_NAME[] = { 'S','e','I','n','c','r','e','a','s','e','B','a','s','e','P','r','i','o','r','i','t','y','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_CREATE_PAGEFILE_NAME[] = { 'S','e','C','r','e','a','t','e','P','a','g','e','f','i','l','e','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_CREATE_PERMANENT_NAME[] = { 'S','e','C','r','e','a','t','e','P','e','r','m','a','n','e','n','t','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_BACKUP_NAME[] = { 'S','e','B','a','c','k','u','p','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_RESTORE_NAME[] = { 'S','e','R','e','s','t','o','r','e','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_SHUTDOWN_NAME[] = { 'S','e','S','h','u','t','d','o','w','n','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_DEBUG_NAME[] = { 'S','e','D','e','b','u','g','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_AUDIT_NAME[] = { 'S','e','A','u','d','i','t','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_SYSTEM_ENVIRONMENT_NAME[] = { 'S','e','S','y','s','t','e','m','E','n','v','i','r','o','n','m','e','n','t','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_CHANGE_NOTIFY_NAME[] = { 'S','e','C','h','a','n','g','e','N','o','t','i','f','y','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_REMOTE_SHUTDOWN_NAME[] = { 'S','e','R','e','m','o','t','e','S','h','u','t','d','o','w','n','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_UNDOCK_NAME[] = { 'S','e','U','n','d','o','c','k','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_ENABLE_DELEGATION_NAME[] = { 'S','e','E','n','a','b','l','e','D','e','l','e','g','a','t','i','o','n','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_MANAGE_VOLUME_NAME[] = { 'S','e','M','a','n','a','g','e','V','o','l','u','m','e','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_IMPERSONATE_NAME[] = { 'S','e','I','m','p','e','r','s','o','n','a','t','e','P','r','i','v','i','l','e','g','e',0 };
++static const WCHAR SE_CREATE_GLOBAL_NAME[] = { 'S','e','C','r','e','a','t','e','G','l','o','b','a','l','P','r','i','v','i','l','e','g','e',0 };
+ #else /* _MSC_VER/__GNUC__ */
+ static const WCHAR SE_CREATE_TOKEN_NAME[] = { 'S','e','C','r','e','a','t','e','T','o','k','e','n','P','r','i','v','i','l','e','g','e',0 };
+diff --git a/include/winspool.h b/include/winspool.h
+index b11438f0a36..0c65576ccf5 100644
+--- a/include/winspool.h
++++ b/include/winspool.h
+@@ -1146,5 +1146,5 @@ typedef struct _BIDI_RESPONSE_CONTAINER {
+ #define SPLREG_DEFAULT_SPOOL_DIRECTORYW L"DefaultSpoolDirectory"
+ #elif defined(__GNUC__)
+-#define SPLREG_DEFAULT_SPOOL_DIRECTORYW (const WCHAR[]){'D','e','f','a','u','l','t','S','p','o','o','l','D','i','r','e','c','t','o','r','y',0}
++static const WCHAR SPLREG_DEFAULT_SPOOL_DIRECTORYW[] = {'D','e','f','a','u','l','t','S','p','o','o','l','D','i','r','e','c','t','o','r','y',0};
+ #else
+ static const WCHAR SPLREG_DEFAULT_SPOOL_DIRECTORYW[] = {'D','e','f','a','u','l','t','S','p','o','o','l','D','i','r','e','c','t','o','r','y',0};
+@@ -1156,5 +1156,5 @@ static const WCHAR SPLREG_DEFAULT_SPOOL_DIRECTORYW[] = {'D','e','f','a','u','l',
+ #define SPLREG_PORT_THREAD_PRIORITY_DEFAULTW L"PortThreadPriorityDefault"
+ #elif defined(__GNUC__)
+-#define SPLREG_PORT_THREAD_PRIORITY_DEFAULTW (const WCHAR[]){'P','o','r','t','T','h','r','e','a','d','P','r','i','o','r','i','t','y','D','e','f','a','u','l','t',0}
++static const WCHAR SPLREG_PORT_THREAD_PRIORITY_DEFAULTW[] = {'P','o','r','t','T','h','r','e','a','d','P','r','i','o','r','i','t','y','D','e','f','a','u','l','t',0};
+ #else
+ static const WCHAR SPLREG_PORT_THREAD_PRIORITY_DEFAULTW[] = {'P','o','r','t','T','h','r','e','a','d','P','r','i','o','r','i','t','y','D','e','f','a','u','l','t',0};
+@@ -1166,5 +1166,5 @@ static const WCHAR SPLREG_PORT_THREAD_PRIORITY_DEFAULTW[] = {'P','o','r','t','T'
+ #define SPLREG_PORT_THREAD_PRIORITYW L"PortThreadPriority"
+ #elif defined(__GNUC__)
+-#define SPLREG_PORT_THREAD_PRIORITYW (const WCHAR[]){'P','o','r','t','T','h','r','e','a','d','P','r','i','o','r','i','t','y',0}
++static const WCHAR SPLREG_PORT_THREAD_PRIORITYW[] = {'P','o','r','t','T','h','r','e','a','d','P','r','i','o','r','i','t','y',0};
+ #else
+ static const WCHAR SPLREG_PORT_THREAD_PRIORITYW[] = {'P','o','r','t','T','h','r','e','a','d','P','r','i','o','r','i','t','y',0};
+@@ -1176,5 +1176,5 @@ static const WCHAR SPLREG_PORT_THREAD_PRIORITYW[] = {'P','o','r','t','T','h','r'
+ #define SPLREG_SCHEDULER_THREAD_PRIORITY_DEFAULTW L"SchedulerThreadPriorityDefault"
+ #elif defined(__GNUC__)
+-#define SPLREG_SCHEDULER_THREAD_PRIORITY_DEFAULTW (const WCHAR[]){'S','c','h','e','d','u','l','e','r','T','h','r','e','a','d','P','r','i','o','r','i','t','y','D','e','f','a','u','l','t',0}
++static const WCHAR SPLREG_SCHEDULER_THREAD_PRIORITY_DEFAULTW[] = {'S','c','h','e','d','u','l','e','r','T','h','r','e','a','d','P','r','i','o','r','i','t','y','D','e','f','a','u','l','t',0};
+ #else
+ static const WCHAR SPLREG_SCHEDULER_THREAD_PRIORITY_DEFAULTW[] = {'S','c','h','e','d','u','l','e','r','T','h','r','e','a','d','P','r','i','o','r','i','t','y','D','e','f','a','u','l','t',0};
+@@ -1186,5 +1186,5 @@ static const WCHAR SPLREG_SCHEDULER_THREAD_PRIORITY_DEFAULTW[] = {'S','c','h','e
+ #define SPLREG_SCHEDULER_THREAD_PRIORITYW L"SchedulerThreadPriority"
+ #elif defined(__GNUC__)
+-#define SPLREG_SCHEDULER_THREAD_PRIORITYW (const WCHAR[]){'S','c','h','e','d','u','l','e','r','T','h','r','e','a','d','P','r','i','o','r','i','t','y',0}
++static const WCHAR SPLREG_SCHEDULER_THREAD_PRIORITYW[] = {'S','c','h','e','d','u','l','e','r','T','h','r','e','a','d','P','r','i','o','r','i','t','y',0};
+ #else
+ static const WCHAR SPLREG_SCHEDULER_THREAD_PRIORITYW[] = {'S','c','h','e','d','u','l','e','r','T','h','r','e','a','d','P','r','i','o','r','i','t','y',0};
+@@ -1196,5 +1196,5 @@ static const WCHAR SPLREG_SCHEDULER_THREAD_PRIORITYW[] = {'S','c','h','e','d','u
+ #define SPLREG_BEEP_ENABLEDW L"BeepEnabled"
+ #elif defined(__GNUC__)
+-#define SPLREG_BEEP_ENABLEDW (const WCHAR[]){'B','e','e','p','E','n','a','b','l','e','d',0}
++static const WCHAR SPLREG_BEEP_ENABLEDW[] = {'B','e','e','p','E','n','a','b','l','e','d',0};
+ #else
+ static const WCHAR SPLREG_BEEP_ENABLEDW[] = {'B','e','e','p','E','n','a','b','l','e','d',0};
+@@ -1206,5 +1206,5 @@ static const WCHAR SPLREG_BEEP_ENABLEDW[] = {'B','e','e','p','E','n','a','b','l'
+ #define SPLREG_NET_POPUPW L"NetPopup"
+ #elif defined(__GNUC__)
+-#define SPLREG_NET_POPUPW (const WCHAR[]){'N','e','t','P','o','p','u','p',0}
++static const WCHAR SPLREG_NET_POPUPW[] = {'N','e','t','P','o','p','u','p',0};
+ #else
+ static const WCHAR SPLREG_NET_POPUPW[] = {'N','e','t','P','o','p','u','p',0};
+@@ -1216,5 +1216,5 @@ static const WCHAR SPLREG_NET_POPUPW[] = {'N','e','t','P','o','p','u','p',0};
+ #define SPLREG_RETRY_POPUPW L"RetryPopup"
+ #elif defined(__GNUC__)
+-#define SPLREG_RETRY_POPUPW (const WCHAR[]){'R','e','t','r','y','P','o','p','u','p',0}
++static const WCHAR SPLREG_RETRY_POPUPW[] = {'R','e','t','r','y','P','o','p','u','p',0};
+ #else
+ static const WCHAR SPLREG_RETRY_POPUPW[] = {'R','e','t','r','y','P','o','p','u','p',0};
+@@ -1226,5 +1226,5 @@ static const WCHAR SPLREG_RETRY_POPUPW[] = {'R','e','t','r','y','P','o','p','u',
+ #define SPLREG_NET_POPUP_TO_COMPUTERW L"NetPopupToComputer"
+ #elif defined(__GNUC__)
+-#define SPLREG_NET_POPUP_TO_COMPUTERW (const WCHAR[]){'N','e','t','P','o','p','u','p','T','o','C','o','m','p','u','t','e','r',0}
++static const WCHAR SPLREG_NET_POPUP_TO_COMPUTERW[] = {'N','e','t','P','o','p','u','p','T','o','C','o','m','p','u','t','e','r',0};
+ #else
+ static const WCHAR SPLREG_NET_POPUP_TO_COMPUTERW[] = {'N','e','t','P','o','p','u','p','T','o','C','o','m','p','u','t','e','r',0};
+@@ -1236,5 +1236,5 @@ static const WCHAR SPLREG_NET_POPUP_TO_COMPUTERW[] = {'N','e','t','P','o','p','u
+ #define SPLREG_EVENT_LOGW L"EventLog"
+ #elif defined(__GNUC__)
+-#define SPLREG_EVENT_LOGW (const WCHAR[]){'E','v','e','n','t','L','o','g',0}
++static const WCHAR SPLREG_EVENT_LOGW[] = {'E','v','e','n','t','L','o','g',0};
+ #else
+ static const WCHAR SPLREG_EVENT_LOGW[] = {'E','v','e','n','t','L','o','g',0};
+@@ -1246,5 +1246,5 @@ static const WCHAR SPLREG_EVENT_LOGW[] = {'E','v','e','n','t','L','o','g',0};
+ #define SPLREG_MAJOR_VERSIONW L"MajorVersion"
+ #elif defined(__GNUC__)
+-#define SPLREG_MAJOR_VERSIONW (const WCHAR[]){'M','a','j','o','r','V','e','r','s','i','o','n',0}
++static const WCHAR SPLREG_MAJOR_VERSIONW[] = {'M','a','j','o','r','V','e','r','s','i','o','n',0};
+ #else
+ static const WCHAR SPLREG_MAJOR_VERSIONW[] = {'M','a','j','o','r','V','e','r','s','i','o','n',0};
+@@ -1256,5 +1256,5 @@ static const WCHAR SPLREG_MAJOR_VERSIONW[] = {'M','a','j','o','r','V','e','r','s
+ #define SPLREG_MINOR_VERSIONW L"MinorVersion"
+ #elif defined(__GNUC__)
+-#define SPLREG_MINOR_VERSIONW (const WCHAR[]){'M','i','n','o','r','V','e','r','s','i','o','n',0}
++static const WCHAR SPLREG_MINOR_VERSIONW[] = {'M','i','n','o','r','V','e','r','s','i','o','n',0};
+ #else
+ static const WCHAR SPLREG_MINOR_VERSIONW[] = {'M','i','n','o','r','V','e','r','s','i','o','n',0};
+@@ -1266,5 +1266,5 @@ static const WCHAR SPLREG_MINOR_VERSIONW[] = {'M','i','n','o','r','V','e','r','s
+ #define SPLREG_ARCHITECTUREW L"Architecture"
+ #elif defined(__GNUC__)
+-#define SPLREG_ARCHITECTUREW (const WCHAR[]){'A','r','c','h','i','t','e','c','t','u','r','e',0}
++static const WCHAR SPLREG_ARCHITECTUREW[] = {'A','r','c','h','i','t','e','c','t','u','r','e',0};
+ #else
+ static const WCHAR SPLREG_ARCHITECTUREW[] = {'A','r','c','h','i','t','e','c','t','u','r','e',0};
+@@ -1276,5 +1276,5 @@ static const WCHAR SPLREG_ARCHITECTUREW[] = {'A','r','c','h','i','t','e','c','t'
+ #define SPLREG_OS_VERSIONW L"OSVersion"
+ #elif defined(__GNUC__)
+-#define SPLREG_OS_VERSIONW (const WCHAR[]){'O','S','V','e','r','s','i','o','n',0}
++static const WCHAR SPLREG_OS_VERSIONW[] = {'O','S','V','e','r','s','i','o','n',0};
+ #else
+ static const WCHAR SPLREG_OS_VERSIONW[] = {'O','S','V','e','r','s','i','o','n',0};
+@@ -1286,5 +1286,5 @@ static const WCHAR SPLREG_OS_VERSIONW[] = {'O','S','V','e','r','s','i','o','n',0
+ #define SPLREG_OS_VERSIONEXW L"OSVersionEx"
+ #elif defined(__GNUC__)
+-#define SPLREG_OS_VERSIONEXW (const WCHAR[]){'O','S','V','e','r','s','i','o','n','E','x',0}
++static const WCHAR SPLREG_OS_VERSIONEXW[] = {'O','S','V','e','r','s','i','o','n','E','x',0};
+ #else
+ static const WCHAR SPLREG_OS_VERSIONEXW[] = {'O','S','V','e','r','s','i','o','n','E','x',0};
+@@ -1296,5 +1296,5 @@ static const WCHAR SPLREG_OS_VERSIONEXW[] = {'O','S','V','e','r','s','i','o','n'
+ #define SPLREG_DS_PRESENTW L"DsPresent"
+ #elif defined(__GNUC__)
+-#define SPLREG_DS_PRESENTW (const WCHAR[]){'D','s','P','r','e','s','e','n','t',0}
++static const WCHAR SPLREG_DS_PRESENTW[] = {'D','s','P','r','e','s','e','n','t',0};
+ #else
+ static const WCHAR SPLREG_DS_PRESENTW[] = {'D','s','P','r','e','s','e','n','t',0};
+@@ -1306,5 +1306,5 @@ static const WCHAR SPLREG_DS_PRESENTW[] = {'D','s','P','r','e','s','e','n','t',0
+ #define SPLREG_DS_PRESENT_FOR_USERW L"DsPresentForUser"
+ #elif defined(__GNUC__)
+-#define SPLREG_DS_PRESENT_FOR_USERW (const WCHAR[]){'D','s','P','r','e','s','e','n','t','F','o','r','U','s','e','r',0}
++static const WCHAR SPLREG_DS_PRESENT_FOR_USERW[] = {'D','s','P','r','e','s','e','n','t','F','o','r','U','s','e','r',0};
+ #else
+ static const WCHAR SPLREG_DS_PRESENT_FOR_USERW[] = {'D','s','P','r','e','s','e','n','t','F','o','r','U','s','e','r',0};
+@@ -1316,5 +1316,5 @@ static const WCHAR SPLREG_DS_PRESENT_FOR_USERW[] = {'D','s','P','r','e','s','e',
+ #define SPLREG_REMOTE_FAXW L"RemoteFax"
+ #elif defined(__GNUC__)
+-#define SPLREG_REMOTE_FAXW (const WCHAR[]){'R','e','m','o','t','e','F','a','x',0}
++static const WCHAR SPLREG_REMOTE_FAXW[] = {'R','e','m','o','t','e','F','a','x',0};
+ #else
+ static const WCHAR SPLREG_REMOTE_FAXW[] = {'R','e','m','o','t','e','F','a','x',0};
+@@ -1326,5 +1326,5 @@ static const WCHAR SPLREG_REMOTE_FAXW[] = {'R','e','m','o','t','e','F','a','x',0
+ #define SPLREG_RESTART_JOB_ON_POOL_ERRORW L"RestartJobOnPoolError"
+ #elif defined(__GNUC__)
+-#define SPLREG_RESTART_JOB_ON_POOL_ERRORW (const WCHAR[]){'R','e','s','t','a','r','t','J','o','b','O','n','P','o','o','l','E','r','r','o','r',0}
++static const WCHAR SPLREG_RESTART_JOB_ON_POOL_ERRORW[] = {'R','e','s','t','a','r','t','J','o','b','O','n','P','o','o','l','E','r','r','o','r',0};
+ #else
+ static const WCHAR SPLREG_RESTART_JOB_ON_POOL_ERRORW[] = {'R','e','s','t','a','r','t','J','o','b','O','n','P','o','o','l','E','r','r','o','r',0};
+@@ -1336,5 +1336,5 @@ static const WCHAR SPLREG_RESTART_JOB_ON_POOL_ERRORW[] = {'R','e','s','t','a','r
+ #define SPLREG_RESTART_JOB_ON_POOL_ENABLEDW L"RestartJobOnPoolEnabled"
+ #elif defined(__GNUC__)
+-#define SPLREG_RESTART_JOB_ON_POOL_ENABLEDW (const WCHAR[]){'R','e','s','t','a','r','t','J','o','b','O','n','P','o','o','l','E','n','a','b','l','e','d',0}
++static const WCHAR SPLREG_RESTART_JOB_ON_POOL_ENABLEDW[] = {'R','e','s','t','a','r','t','J','o','b','O','n','P','o','o','l','E','n','a','b','l','e','d',0};
+ #else
+ static const WCHAR SPLREG_RESTART_JOB_ON_POOL_ENABLEDW[] = {'R','e','s','t','a','r','t','J','o','b','O','n','P','o','o','l','E','n','a','b','l','e','d',0};
+@@ -1346,5 +1346,5 @@ static const WCHAR SPLREG_RESTART_JOB_ON_POOL_ENABLEDW[] = {'R','e','s','t','a',
+ #define SPLREG_DNS_MACHINE_NAMEW L"DNSMachineName"
+ #elif defined(__GNUC__)
+-#define SPLREG_DNS_MACHINE_NAMEW (const WCHAR[]){'D','N','S','M','a','c','h','i','n','e','N','a','m','e',0}
++static const WCHAR SPLREG_DNS_MACHINE_NAMEW[] = {'D','N','S','M','a','c','h','i','n','e','N','a','m','e',0};
+ #else
+ static const WCHAR SPLREG_DNS_MACHINE_NAMEW[] = {'D','N','S','M','a','c','h','i','n','e','N','a','m','e',0};
+@@ -1356,5 +1356,5 @@ static const WCHAR SPLREG_DNS_MACHINE_NAMEW[] = {'D','N','S','M','a','c','h','i'
+ #define SPLREG_ALLOW_USER_MANAGEFORMSW L"AllowUserManageForms"
+ #elif defined(__GNUC__)
+-#define SPLREG_ALLOW_USER_MANAGEFORMSW (const WCHAR[]){'A','l','l','o','w','U','s','e','r','M','a','n','a','g','e','F','o','r','m','s',0}
++static const WCHAR SPLREG_ALLOW_USER_MANAGEFORMSW[] = {'A','l','l','o','w','U','s','e','r','M','a','n','a','g','e','F','o','r','m','s',0};
+ #else
+ static const WCHAR SPLREG_ALLOW_USER_MANAGEFORMSW[] = {'A','l','l','o','w','U','s','e','r','M','a','n','a','g','e','F','o','r','m','s',0};
+@@ -1366,5 +1366,5 @@ static const WCHAR SPLREG_ALLOW_USER_MANAGEFORMSW[] = {'A','l','l','o','w','U','
+ #define SPLREG_WEBSHAREMGMTW L"WebShareMgmt"
+ #elif defined(__GNUC__)
+-#define SPLREG_WEBSHAREMGMTW (const WCHAR[]){'W','e','b','S','h','a','r','e','M','g','m','t',0}
++static const WCHAR SPLREG_WEBSHAREMGMTW[] = {'W','e','b','S','h','a','r','e','M','g','m','t',0};
+ #else
+ static const WCHAR SPLREG_WEBSHAREMGMTW[] = {'W','e','b','S','h','a','r','e','M','g','m','t',0};
+@@ -1376,5 +1376,5 @@ static const WCHAR SPLREG_WEBSHAREMGMTW[] = {'W','e','b','S','h','a','r','e','M'
+ #define SPLREG_PRINT_DRIVER_ISOLATION_GROUPSW L"PrintDriverIsolationGroups"
+ #elif defined(__GNUC__)
+-#define SPLREG_PRINT_DRIVER_ISOLATION_GROUPSW (const WCHAR[]){'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','G','r','o','u','p','s',0}
++static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_GROUPSW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','G','r','o','u','p','s',0};
+ #else
+ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_GROUPSW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','G','r','o','u','p','s',0};
+@@ -1386,5 +1386,5 @@ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_GROUPSW[] = {'P','r','i','n','t
+ #define SPLREG_PRINT_DRIVER_ISOLATION_TIME_BEFORE_RECYCLEW L"PrintDriverIsolationTimeBeforeRecycle"
+ #elif defined(__GNUC__)
+-#define SPLREG_PRINT_DRIVER_ISOLATION_TIME_BEFORE_RECYCLEW (const WCHAR[]){'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','T','i','m','e','B','e','f','o','r','e','R','e','c','y','c','l','e',0}
++static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_TIME_BEFORE_RECYCLEW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','T','i','m','e','B','e','f','o','r','e','R','e','c','y','c','l','e',0};
+ #else
+ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_TIME_BEFORE_RECYCLEW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','T','i','m','e','B','e','f','o','r','e','R','e','c','y','c','l','e',0};
+@@ -1396,5 +1396,5 @@ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_TIME_BEFORE_RECYCLEW[] = {'P','
+ #define SPLREG_PRINT_DRIVER_ISOLATION_MAX_OBJECTS_BEFORE_RECYCLEW L"PrintDriverIsolationMaxobjsBeforeRecycle"
+ #elif defined(__GNUC__)
+-#define SPLREG_PRINT_DRIVER_ISOLATION_MAX_OBJECTS_BEFORE_RECYCLEW (const WCHAR[]){'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','M','a','x','o','b','j','s','B','e','f','o','r','e','R','e','c','y','c','l','e',0}
++static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_MAX_OBJECTS_BEFORE_RECYCLEW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','M','a','x','o','b','j','s','B','e','f','o','r','e','R','e','c','y','c','l','e',0};
+ #else
+ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_MAX_OBJECTS_BEFORE_RECYCLEW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','M','a','x','o','b','j','s','B','e','f','o','r','e','R','e','c','y','c','l','e',0};
+@@ -1406,5 +1406,5 @@ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_MAX_OBJECTS_BEFORE_RECYCLEW[] =
+ #define SPLREG_PRINT_DRIVER_ISOLATION_IDLE_TIMEOUTW L"PrintDriverIsolationIdleTimeout"
+ #elif defined(__GNUC__)
+-#define SPLREG_PRINT_DRIVER_ISOLATION_IDLE_TIMEOUTW (const WCHAR[]){'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','I','d','l','e','T','i','m','e','o','u','t',0}
++static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_IDLE_TIMEOUTW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','I','d','l','e','T','i','m','e','o','u','t',0};
+ #else
+ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_IDLE_TIMEOUTW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','I','d','l','e','T','i','m','e','o','u','t',0};
+@@ -1416,5 +1416,5 @@ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_IDLE_TIMEOUTW[] = {'P','r','i',
+ #define SPLREG_PRINT_DRIVER_ISOLATION_EXECUTION_POLICYW L"PrintDriverIsolationExecutionPolicy"
+ #elif defined(__GNUC__)
+-#define SPLREG_PRINT_DRIVER_ISOLATION_EXECUTION_POLICYW (const WCHAR[]){'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','E','x','e','c','u','t','i','o','n','P','o','l','i','c','y',0}
++static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_EXECUTION_POLICYW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','E','x','e','c','u','t','i','o','n','P','o','l','i','c','y',0};
+ #else
+ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_EXECUTION_POLICYW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','E','x','e','c','u','t','i','o','n','P','o','l','i','c','y',0};
+@@ -1426,5 +1426,5 @@ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_EXECUTION_POLICYW[] = {'P','r',
+ #define SPLREG_PRINT_DRIVER_ISOLATION_OVERRIDE_POLICYW L"PrintDriverIsolationOverrideCompat"
+ #elif defined(__GNUC__)
+-#define SPLREG_PRINT_DRIVER_ISOLATION_OVERRIDE_POLICYW (const WCHAR[]){'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','O','v','e','r','r','i','d','e','C','o','m','p','a','t',0}
++static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_OVERRIDE_POLICYW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','O','v','e','r','r','i','d','e','C','o','m','p','a','t',0};
+ #else
+ static const WCHAR SPLREG_PRINT_DRIVER_ISOLATION_OVERRIDE_POLICYW[] = {'P','r','i','n','t','D','r','i','v','e','r','I','s','o','l','a','t','i','o','n','O','v','e','r','r','i','d','e','C','o','m','p','a','t',0};
+diff --git a/include/winsvc.h b/include/winsvc.h
+index 9db35dd4fe0..a319fecfb0c 100644
+--- a/include/winsvc.h
++++ b/include/winsvc.h
+@@ -35,6 +35,6 @@ extern "C" {
+ 
+ #if defined(__GNUC__)
+-# define SERVICES_ACTIVE_DATABASEW    (const WCHAR []){ 'S','e','r','v','i','c','e','s','A','c','t','i','v','e',0 }
+-# define SERVICES_FAILED_DATABASEW    (const WCHAR []){ 'S','e','r','v','i','c','e','s','F','a','i','l','e','d',0 }
++static const WCHAR SERVICES_ACTIVE_DATABASEW[] = { 'S','e','r','v','i','c','e','s','A','c','t','i','v','e',0 };
++static const WCHAR SERVICES_FAILED_DATABASEW[] = { 'S','e','r','v','i','c','e','s','F','a','i','l','e','d',0 };
+ #elif defined(_MSC_VER)
+ # define SERVICES_ACTIVE_DATABASEW    L"ServicesActive"
+diff --git a/include/wintrust.h b/include/wintrust.h
+index dcb432a6dca..df42a1bd164 100644
+--- a/include/wintrust.h
++++ b/include/wintrust.h
+@@ -453,6 +453,5 @@ extern "C" {
+ 
+ #if defined(__GNUC__)
+-#define WT_PROVIDER_CERTTRUST_FUNCTION (const WCHAR []) \
+-    {'W','i','n','t','r','u','s','t','C','e','r','t','i','f','i','c','a','t','e','T','r','u','s','t', 0}
++static const WCHAR WT_PROVIDER_CERTTRUST_FUNCTION[] = {'W','i','n','t','r','u','s','t','C','e','r','t','i','f','i','c','a','t','e','T','r','u','s','t', 0};
+ #elif defined(_MSC_VER)
+ #define WT_PROVIDER_CERTTRUST_FUNCTION L"WintrustCertificateTrust"
+--

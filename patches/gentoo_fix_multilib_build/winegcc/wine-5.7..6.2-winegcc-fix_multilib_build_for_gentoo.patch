@@ -1,0 +1,68 @@
+e4e05cdaab4044b0e3a66723d51e74daf6a6ac35..717dd6cee400f806f3432129ff8f048ef061e830
+50fdd5e2b5c6347ccffb19efe31f271feca92de0..ce5477ef02688e4f535c6916c26193743ab38f40
+
+From 22bab0394c2373d40b76349e5ea6dbe595fe4154 Mon Sep 17 00:00:00 2001
+From: Robert Walker <bob.mt.wya@gmail.com>
+Date: Tue, 28 Feb 2023 13:12:02 +0000
+Subject: [PATCH] winegcc: fix multilib build for gentoo
+
+See: https://bugs.gentoo.org/260726
+See: https://bugs.winehq.org/show_bug.cgi?id=17498
+---
+
+ tools/winebuild/main.c  | 7 +++++++
+ tools/winegcc/winegcc.c | 7 +++++++
+ 2 files changed, 14 insertions(+)
+
+
+diff --git a/tools/winebuild/main.c b/tools/winebuild/main.c
+index efb86b705e1..140200e8fe7 100644
+--- a/tools/winebuild/main.c
++++ b/tools/winebuild/main.c
+@@ -50,8 +50,11 @@ int unix_lib = 0;
+ int safe_seh = 0;
+ 
++#undef FORCE_POINTER_SIZE
+ #ifdef __i386__
+ enum target_cpu target_cpu = CPU_x86;
++#define FORCE_POINTER_SIZE
+ #elif defined(__x86_64__)
+ enum target_cpu target_cpu = CPU_x86_64;
++#define FORCE_POINTER_SIZE
+ #elif defined(__powerpc__)
+ enum target_cpu target_cpu = CPU_POWERPC;
+@@ -667,4 +670,8 @@ int main(int argc, char **argv)
+     signal( SIGINT, exit_on_signal );
+ 
++#ifdef FORCE_POINTER_SIZE
++    force_pointer_size = sizeof(size_t);
++#endif
++
+     argv = parse_options( argc, argv, spec );
+     atexit( cleanup );  /* make sure we remove the output file on exit */
+diff --git a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
+index 89f8eca5c28..3a13b4b52e3 100644
+--- a/tools/winegcc/winegcc.c
++++ b/tools/winegcc/winegcc.c
+@@ -237,8 +237,11 @@ struct options
+ };
+ 
++#undef FORCE_POINTER_SIZE
+ #ifdef __i386__
+ static const enum target_cpu build_cpu = CPU_x86;
++#define FORCE_POINTER_SIZE
+ #elif defined(__x86_64__)
+ static const enum target_cpu build_cpu = CPU_x86_64;
++#define FORCE_POINTER_SIZE
+ #elif defined(__powerpc__)
+ static const enum target_cpu build_cpu = CPU_POWERPC;
+@@ -1575,4 +1578,8 @@ int main(int argc, char **argv)
+     opts.pic = 1;
+ 
++#ifdef FORCE_POINTER_SIZE
++    opts.force_pointer_size = sizeof(size_t);
++#endif
++
+     /* determine the processor type */
+     if (strendswith(argv[0], "winecpp")) opts.processor = proc_cpp;
+--

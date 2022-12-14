@@ -1,0 +1,83 @@
+a243a7af9737adae2da35c2f6162362b196bb734..a243a7af9737adae2da35c2f6162362b196bb734
+
+commit 2f03795cb0b0550f26c0040da64cc918c7a03539
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Sun Jan 29 11:56:51 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Sun Jan 29 11:56:51 2023 +0000
+
+winecfg: display full package string
+---
+
+ programs/winecfg/about.c    | 9 ++++++---
+ programs/winecfg/resource.h | 1 -
+ programs/winecfg/winecfg.rc | 8 ++++----
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+
+diff --git a/programs/winecfg/about.c b/programs/winecfg/about.c
+index c567640fdbe..bbd273b5db2 100644
+--- a/programs/winecfg/about.c
++++ b/programs/winecfg/about.c
+@@ -44,4 +44,6 @@ AboutDlgProc (HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+     RECT rcClient, rcRect;
+     char *owner, *org;
++    static CHAR package_string[256];
++
+ 
+     switch (uMsg)
+@@ -107,10 +109,12 @@ AboutDlgProc (HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+ 
+         /* prepare the title text */
+-        titleFont = CreateFontW( -MulDiv(24, GetDeviceCaps(hDC, LOGPIXELSY), 72),
++        titleFont = CreateFontW( -MulDiv(16, GetDeviceCaps(hDC, LOGPIXELSY), 72),
+                                  0, 0, 0, 0, FALSE, 0, 0, 0, 0, 0, 0, 0, L"Tahoma" );
+         SendDlgItemMessageW(hDlg, IDC_ABT_TITLE_TEXT, WM_SETFONT, (WPARAM)titleFont, TRUE);
+ 
+         wine_get_version = (void *)GetProcAddress( GetModuleHandleA("ntdll.dll"), "wine_get_version" );
+-        if (wine_get_version) SetDlgItemTextA(hDlg, IDC_ABT_PANEL_TEXT, wine_get_version());
++    lstrcpyA(package_string, "");
++    if (wine_get_version) lstrcatA(package_string, wine_get_version());
++    SetDlgItemTextA(hDlg, IDC_ABT_TITLE_TEXT, package_string);
+ 
+         ReleaseDC(hDlg, hDC);
+@@ -161,5 +165,4 @@ AboutDlgProc (HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+             SetBkColor((HDC)wParam, GetSysColor(COLOR_WINDOW));
+             return (INT_PTR)GetSysColorBrush(COLOR_WINDOW);
+-        case IDC_ABT_PANEL_TEXT:
+         case IDC_ABT_LICENSE_TEXT:
+         case IDC_ABT_WEB_LINK:
+diff --git a/programs/winecfg/resource.h b/programs/winecfg/resource.h
+index dd46bc71b40..e7e1d210c2a 100644
+--- a/programs/winecfg/resource.h
++++ b/programs/winecfg/resource.h
+@@ -215,5 +215,4 @@
+ #define IDC_ABT_ORG                  8433
+ #define IDC_ABT_PANEL                8434
+-#define IDC_ABT_PANEL_TEXT           8435
+ #define IDC_ABT_TITLE_TEXT           8436
+ #define IDC_ABT_WEB_LINK             8437
+diff --git a/programs/winecfg/winecfg.rc b/programs/winecfg/winecfg.rc
+index 1faa0a60b55..6efafe632c1 100644
+--- a/programs/winecfg/winecfg.rc
++++ b/programs/winecfg/winecfg.rc
+@@ -21,4 +21,5 @@
+  */
+ 
++#include "config.h"
+ #include "resource.h"
+ 
+@@ -134,9 +135,8 @@ FONT 8, "MS Shell Dlg"
+ BEGIN
+     CONTROL         "", IDC_ABT_PANEL, "STATIC", SS_OWNERDRAW, 0, 0, 260, 140
+-    LTEXT           "Wine",IDC_ABT_TITLE_TEXT,105,30,55,30
+-    LTEXT           "",IDC_ABT_PANEL_TEXT,160,43,140,8
+-    CONTROL         "#msgctxt#do not translate#<a href=\"https://www.winehq.org\">https://www.winehq.org</a>",IDC_ABT_WEB_LINK,"SysLink", LWS_TRANSPARENT, 105,53,106,8
++    LTEXT           "",IDC_ABT_TITLE_TEXT,100,30,200,20
++    CONTROL         "#msgctxt#do not translate#<a href=\"https://www.winehq.org\">https://www.winehq.org</a>",IDC_ABT_WEB_LINK,"SysLink", LWS_TRANSPARENT, 100,53,106,8
+     LTEXT           "This program is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.",
+-                    IDC_ABT_LICENSE_TEXT,105,64,145,66
++                    IDC_ABT_LICENSE_TEXT,100,64,145,66
+     GROUPBOX        "Windows registration information", IDC_STATIC, 15, 155, 230, 55
+     LTEXT           "&Owner:", IDC_STATIC, 22, 171, 40, 20
+--

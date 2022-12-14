@@ -1,0 +1,64 @@
+From 163f74fe61851ff57264437073805dd5e7afe2bd Mon Sep 17 00:00:00 2001
+From: Alistair Leslie-Hughes <leslie_alistair@hotmail.com>
+Date: Sat, 3 Jul 2021 22:22:11 +1000
+Subject: [PATCH] Updated ws2_32-connect-already-connected patchset
+
+---
+ ...y-forbid-connecting-a-listening-or-c.patch | 48 +++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+ create mode 100644 patches/ws2_32-connect-already-connected/0001-server-Explicitly-forbid-connecting-a-listening-or-c.patch
+
+diff --git a/patches/ws2_32-connect-already-connected/0001-server-Explicitly-forbid-connecting-a-listening-or-c.patch b/patches/ws2_32-connect-already-connected/0001-server-Explicitly-forbid-connecting-a-listening-or-c.patch
+new file mode 100644
+index 000000000..7f451f5fb
+--- /dev/null
++++ b/patches/ws2_32-connect-already-connected/0001-server-Explicitly-forbid-connecting-a-listening-or-c.patch
+@@ -0,0 +1,48 @@
++From 105e57e403272c3e57a4836b5ed06c4651942a6e Mon Sep 17 00:00:00 2001
++From: Zebediah Figura <z.figura12@gmail.com>
++Date: Sat, 3 Jul 2021 17:18:32 +1000
++Subject: [PATCH] server: Explicitly forbid connecting a listening or connected
++ socket.
++
++---
++ server/sock.c | 23 ++++++++++++++++++-----
++ 1 file changed, 18 insertions(+), 5 deletions(-)
++
++diff --git a/server/sock.c b/server/sock.c
++index befa9117c13..9fc66f95335 100644
++--- a/server/sock.c
+++++ b/server/sock.c
++@@ -2161,12 +2161,25 @@ static int sock_ioctl( struct fd *fd, ioctl_code_t code, struct async *async )
++             return 0;
++         }
++ 
++-        if (sock->state == SOCK_CONNECTING)
+++        switch (sock->state)
++         {
++-            /* FIXME: STATUS_ADDRESS_ALREADY_ASSOCIATED probably isn't right,
++-             * but there's no status code that maps to WSAEALREADY... */
++-            set_error( params->synchronous ? STATUS_ADDRESS_ALREADY_ASSOCIATED : STATUS_INVALID_PARAMETER );
++-            return 0;
+++            case SOCK_LISTENING:
+++                set_error( STATUS_INVALID_PARAMETER );
+++                return 0;
+++
+++            case SOCK_CONNECTING:
+++                /* FIXME: STATUS_ADDRESS_ALREADY_ASSOCIATED probably isn't right,
+++                 * but there's no status code that maps to WSAEALREADY... */
+++                set_error( params->synchronous ? STATUS_ADDRESS_ALREADY_ASSOCIATED : STATUS_INVALID_PARAMETER );
+++                return 0;
+++
+++            case SOCK_CONNECTED:
+++                set_error( STATUS_CONNECTION_ACTIVE );
+++                return 0;
+++
+++            case SOCK_UNCONNECTED:
+++            case SOCK_CONNECTIONLESS:
+++                break;
++         }
++ 
++         unix_len = sockaddr_to_unix( addr, params->addr_len, &unix_addr );
++-- 
++2.30.2
++

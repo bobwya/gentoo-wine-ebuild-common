@@ -1,0 +1,25 @@
+ca683dcaadadf86dacd797b2d7c2ad1fca0155c1..93888fbb3e4d973f5878a0aab16a9d64fb73a764
+
+From 388348ddbf7d138fed3a6fe48bf6666a95ef3528 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:29 -0600
+Subject: [PATCH] winebus: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/winebus.sys/bus.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winebus.sys/bus.h b/dlls/winebus.sys/bus.h
+index a2508784899..440ff9a5108 100644
+--- a/dlls/winebus.sys/bus.h
++++ b/dlls/winebus.sys/bus.h
+@@ -54,4 +54,4 @@ DWORD check_bus_option(const UNICODE_STRING *option, DWORD default_value) DECLSP
+ BOOL is_xbox_gamepad(WORD vid, WORD pid) DECLSPEC_HIDDEN;
+ 
+-HANDLE driver_key DECLSPEC_HIDDEN;
+-DEVICE_OBJECT *bus_pdo DECLSPEC_HIDDEN;
++extern HANDLE driver_key DECLSPEC_HIDDEN;
++extern DEVICE_OBJECT *bus_pdo DECLSPEC_HIDDEN;
+--

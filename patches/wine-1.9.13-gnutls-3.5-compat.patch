@@ -1,5 +1,7 @@
+..bf5ac531a030bce9e798ab66bc53e84a65ca8fdb
+..fad28964903e708e3236ebe72c11a6024d349db1
+ 
 From bf5ac531a030bce9e798ab66bc53e84a65ca8fdb Mon Sep 17 00:00:00 2001
-From fad28964903e708e3236ebe72c11a6024d349db1 Mon Sep 17 00:00:00 2001
 From: Michael Cronenworth <mike@cchtml.com>
 Date: Thu, 16 Jun 2016 00:21:13 -0500
 Subject: [PATCH] secur32: Provide a static declaration for

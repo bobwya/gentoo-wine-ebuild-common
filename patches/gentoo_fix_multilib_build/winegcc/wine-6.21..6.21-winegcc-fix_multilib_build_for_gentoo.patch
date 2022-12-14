@@ -1,0 +1,67 @@
+61e210f1967a4237d07f5c791433b99f49e78113..61e210f1967a4237d07f5c791433b99f49e78113
+
+From 22bab0394c2373d40b76349e5ea6dbe595fe4154 Mon Sep 17 00:00:00 2001
+From: Robert Walker <bob.mt.wya@gmail.com>
+Date: Tue, 28 Feb 2023 13:12:02 +0000
+Subject: [PATCH] winegcc: fix multilib build for gentoo
+
+See: https://bugs.gentoo.org/260726
+See: https://bugs.winehq.org/show_bug.cgi?id=17498
+---
+
+ tools/winebuild/main.c  | 7 +++++++
+ tools/winegcc/winegcc.c | 7 +++++++
+ 2 files changed, 14 insertions(+)
+
+
+diff --git a/tools/winebuild/main.c b/tools/winebuild/main.c
+index 8b3c0f0a285..dd20fb0556b 100644
+--- a/tools/winebuild/main.c
++++ b/tools/winebuild/main.c
+@@ -48,8 +48,11 @@ int safe_seh = 0;
+ int prefer_native = 0;
+ 
++#undef FORCE_POINTER_SIZE
+ #ifdef __i386__
+ enum target_cpu target_cpu = CPU_x86;
++#define FORCE_POINTER_SIZE
+ #elif defined(__x86_64__)
+ enum target_cpu target_cpu = CPU_x86_64;
++#define FORCE_POINTER_SIZE
+ #elif defined(__arm__)
+ enum target_cpu target_cpu = CPU_ARM;
+@@ -690,4 +693,8 @@ int main(int argc, char **argv)
+     signal( SIGINT, exit_on_signal );
+ 
++#ifdef FORCE_POINTER_SIZE
++    force_pointer_size = sizeof(size_t);
++#endif
++
+     files = parse_options( argc, argv, short_options, long_options, 0, option_callback );
+ 
+diff --git a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
+index c27ccf7357e..033ec6fa53a 100644
+--- a/tools/winegcc/winegcc.c
++++ b/tools/winegcc/winegcc.c
+@@ -247,8 +247,11 @@ struct options
+ };
+ 
++#undef FORCE_POINTER_SIZE
+ #ifdef __i386__
+ static const enum target_cpu build_cpu = CPU_x86;
++#define FORCE_POINTER_SIZE
+ #elif defined(__x86_64__)
+ static const enum target_cpu build_cpu = CPU_x86_64;
++#define FORCE_POINTER_SIZE
+ #elif defined(__arm__)
+ static const enum target_cpu build_cpu = CPU_ARM;
+@@ -1661,4 +1664,8 @@ int main(int argc, char **argv)
+     opts.pic = 1;
+ 
++#ifdef FORCE_POINTER_SIZE
++    opts.force_pointer_size = sizeof(size_t);
++#endif
++
+     /* determine the processor type */
+     if (strendswith(argv[0], "winecpp")) opts.processor = proc_cpp;
+--

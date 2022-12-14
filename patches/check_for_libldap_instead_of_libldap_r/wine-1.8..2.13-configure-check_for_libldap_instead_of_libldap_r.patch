@@ -1,0 +1,81 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..448e9ce644ea6da994364027aad39a41ac3a0b7a
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From 11b15054e74e3af62e4e851c272071dfd8c23775 Mon Sep 17 00:00:00 2001
+From: Hans Leidekker <hans@codeweavers.com>
+Date: Mon, 13 Dec 2021 11:24:02 +0100
+Subject: [PATCH] configure: Check for libldap instead of libldap_r.
+
+Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=52140
+Signed-off-by: Hans Leidekker <hans@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+--- configure    | 20 ++++++++++----------
+ configure.ac |  4 ++--
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+
+diff --git a/configure b/configure
+index 0db4d30a5a4..858a906d8fc 100755
+--- a/configure
++++ b/configure
+@@ -15420,11 +15420,11 @@ then
+ "
+ if test "x$ac_cv_type_LDAPSortKey" = xyes; then :
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ldap_initialize in -lldap_r" >&5
+-$as_echo_n "checking for ldap_initialize in -lldap_r... " >&6; }
+-if ${ac_cv_lib_ldap_r_ldap_initialize+:} false; then :
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ldap_initialize in -lldap" >&5
++$as_echo_n "checking for ldap_initialize in -lldap... " >&6; }
++if ${ac_cv_lib_ldap_ldap_initialize+:} false; then :
+   $as_echo_n "(cached) " >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lldap_r $PTHREAD_LIBS $LIBS"
++LIBS="-lldap $PTHREAD_LIBS $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+@@ -15446,7 +15446,7 @@ return ldap_initialize ();
+ _ACEOF
+ if ac_fn_c_try_link "$LINENO"; then :
+-  ac_cv_lib_ldap_r_ldap_initialize=yes
++  ac_cv_lib_ldap_ldap_initialize=yes
+ else
+-  ac_cv_lib_ldap_r_ldap_initialize=no
++  ac_cv_lib_ldap_ldap_initialize=no
+ fi
+ rm -f core conftest.err conftest.$ac_objext \
+@@ -15454,7 +15454,7 @@ rm -f core conftest.err conftest.$ac_objext \
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldap_r_ldap_initialize" >&5
+-$as_echo "$ac_cv_lib_ldap_r_ldap_initialize" >&6; }
+-if test "x$ac_cv_lib_ldap_r_ldap_initialize" = xyes; then :
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldap_ldap_initialize" >&5
++$as_echo "$ac_cv_lib_ldap_ldap_initialize" >&6; }
++if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then :
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ber_init in -llber" >&5
+ $as_echo_n "checking for ber_init in -llber... " >&6; }
+@@ -15497,5 +15497,5 @@ if test "x$ac_cv_lib_lber_ber_init" = xyes; then :
+ $as_echo "#define HAVE_LDAP 1" >>confdefs.h
+ 
+-                 LDAP_LIBS="-lldap_r -llber"
++                 LDAP_LIBS="-lldap -llber"
+ fi
+ 
+diff --git a/configure.ac b/configure.ac
+index 86f12c598d2..ccc3d9194a4 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2074,8 +2074,8 @@ if test "$ac_cv_header_ldap_h" = "yes" -a "$ac_cv_header_lber_h" = "yes"
+ then
+     AC_CHECK_TYPE(LDAPSortKey,
+-        [AC_CHECK_LIB(ldap_r, ldap_initialize,
++        [AC_CHECK_LIB(ldap, ldap_initialize,
+             [AC_CHECK_LIB(lber, ber_init,
+                 [AC_DEFINE(HAVE_LDAP, 1, [Define if you have the OpenLDAP development environment])
+-                 LDAP_LIBS="-lldap_r -llber"],,
++                 LDAP_LIBS="-lldap -llber"],,
+                  [$PTHREAD_LIBS])],,
+                  [$PTHREAD_LIBS])],,
+--

@@ -1,0 +1,15 @@
+c4de5ab77433afa6fdd1b81baefb9fe001dbf6bf..f8c3c9a6f840c35a2a6fb9996001dbbafccc899f
+
+diff --git a/patches/winecfg-Staging/0001-winecfg-Add-staging-tab-for-CSMT.patch b/patches/winecfg-Staging/0001-winecfg-Add-staging-tab-for-CSMT.patch
+index 8e3209b7..2387d9c3 100644
+--- a/patches/winecfg-Staging/0001-winecfg-Add-staging-tab-for-CSMT.patch
++++ b/patches/winecfg-Staging/0001-winecfg-Add-staging-tab-for-CSMT.patch
+@@ -35,7 +35,7 @@ index 09cc0151574..a5251915533 100644
+              SetWindowTextA(hWnd, PACKAGE_NAME);
+          }
+ -        SetDlgItemTextA(hDlg, IDC_ABT_PANEL_TEXT, PACKAGE_VERSION);
+-+        SetDlgItemTextA(hDlg, IDC_ABT_PANEL_TEXT, PACKAGE_VERSION " (Staging)");
+++        SetDlgItemTextA(hDlg, IDC_ABT_PANEL_TEXT, PACKAGE_VERSION);
+  
+          /* prepare the web link */
+          SetDlgItemTextA(hDlg, IDC_ABT_WEB_LINK, "<a href=\"" PACKAGE_URL "\">" PACKAGE_URL "</a>");

@@ -1,0 +1,35 @@
+..f253e6cf9395c5895920ea4f09bd0994d253483e
+
+From f253e6cf9395c5895920ea4f09bd0994d253483e Mon Sep 17 00:00:00 2001
+..daf5fae80aefc8f24bfc1670bdec7ff02f16b6d5
+
+From daf5fae80aefc8f24bfc1670bdec7ff02f16b6d5 Mon Sep 17 00:00:00 2001
+From: Anton Baskanov <baskanov@gmail.com>
+Date: Sat, 13 Feb 2016 22:12:56 +0600
+Subject: [PATCH] quartz: Set the result to 1.0 in FilterGraph::GetRate.
+
+Signed-off-by: Anton Baskanov <baskanov@gmail.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/quartz/filtergraph.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/dlls/quartz/filtergraph.c b/dlls/quartz/filtergraph.c
+index 5cb670e..39fa783 100644
+--- a/dlls/quartz/filtergraph.c
++++ b/dlls/quartz/filtergraph.c
+@@ -2632,6 +2632,11 @@ static HRESULT WINAPI MediaSeeking_GetRate(IMediaSeeking *iface, double *pdRate)
+ 
+     FIXME("(%p/%p)->(%p): stub !!!\n", This, iface, pdRate);
+ 
++    if (!pdRate)
++        return E_POINTER;
++
++    *pdRate = 1.0;
++
+     return S_OK;
+ }
+ 
+-- 
+2.1.4
+

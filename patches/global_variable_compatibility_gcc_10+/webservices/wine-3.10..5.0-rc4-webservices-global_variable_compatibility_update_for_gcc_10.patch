@@ -1,0 +1,32 @@
+3c3ab8911ef6dcb89377ddb2dd289749420e73e3..388dd4d890c45abb7bcdc0fe04ff38be8c0782c8
+2b941ca0c37b3e3cbd9b2cd606725abebef2b794..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+94b6a19772214f05f750df0b4c176fe213c1fc35..d03186481fb35350b2169f05be4c2211d537556e
+
+From bc51c5d589de709e1d393b58b0cc5985c78061ac Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:28 -0600
+Subject: [PATCH] webservices: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Hans Leidekker <hans@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/webservices/webservices_private.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/webservices/webservices_private.h b/dlls/webservices/webservices_private.h
+index d981527bb24..376c05a2f21 100644
+--- a/dlls/webservices/webservices_private.h
++++ b/dlls/webservices/webservices_private.h
+@@ -47,6 +47,6 @@ struct dictionary
+     ULONG             *sequence;
+ };
+-struct dictionary dict_builtin DECLSPEC_HIDDEN;
+-const struct dictionary dict_builtin_static DECLSPEC_HIDDEN;
++extern struct dictionary dict_builtin DECLSPEC_HIDDEN;
++extern const struct dictionary dict_builtin_static DECLSPEC_HIDDEN;
+ 
+ int find_string( const struct dictionary *, const unsigned char *, ULONG, ULONG * ) DECLSPEC_HIDDEN;
+--

@@ -1,0 +1,52 @@
+02d0d68bca2a93a7ed5333402d9165eb16feb06d..44e69405adcdc98d6b0777e6c0acb2697d776ef8
+483e26259ba0530a42be722976df63a489a0e6d9..d42cb277d0ba8918598c2d1af62e9c0d883e20c7
+7483a38d4c4eb823362f093a3e721335b5854365..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+
+From 4a91eb362666b3af549c48b95e093051756628e0 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:26 -0600
+Subject: [PATCH] twain_32: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/twain_32/twain32_main.c | 5 ++++-
+ dlls/twain_32/twain_i.h      | 6 +++---
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+
+diff --git a/dlls/twain_32/twain32_main.c b/dlls/twain_32/twain32_main.c
+index 016680b96eb..60d3bf7574b 100644
+--- a/dlls/twain_32/twain32_main.c
++++ b/dlls/twain_32/twain32_main.c
+@@ -31,6 +31,9 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(twain);
++ 
++TW_UINT16 DSM_twCC;
++activeDS *activeSources;
+ 
+-extern HINSTANCE DSM_hinstance;
++HINSTANCE DSM_hinstance;
+ 
+ BOOL WINAPI DllMain (HINSTANCE hinstance, DWORD reason, LPVOID reserved)
+diff --git a/dlls/twain_32/twain_i.h b/dlls/twain_32/twain_i.h
+index 4d33135344e..beb5334b755 100644
+--- a/dlls/twain_32/twain_i.h
++++ b/dlls/twain_32/twain_i.h
+@@ -50,9 +50,9 @@ typedef struct tagActiveDS
+ } activeDS;
+ 
+-TW_UINT16 DSM_twCC DECLSPEC_HIDDEN;             /* current condition code of Source Manager */
++extern TW_UINT16 DSM_twCC DECLSPEC_HIDDEN;             /* current condition code of Source Manager */
+ 
+-activeDS *activeSources DECLSPEC_HIDDEN;	/* list of active data sources */
++extern activeDS *activeSources DECLSPEC_HIDDEN;	/* list of active data sources */
+ 
+-HINSTANCE DSM_hinstance DECLSPEC_HIDDEN;
++extern HINSTANCE DSM_hinstance DECLSPEC_HIDDEN;
+ 
+ /* Implementation of operation triplets (From Application to Source Manager) */
+--

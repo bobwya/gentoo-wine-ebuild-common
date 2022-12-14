@@ -1,0 +1,27 @@
+4d3db6d2d743ea8fc61ed122f27baeddf30ee2ea..da21c305164c3e585e29e20242afc5a31f91989f
+
+From 44e69405adcdc98d6b0777e6c0acb2697d776ef8 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:30 -0600
+Subject: [PATCH] xinput: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Andrew Eikum <aeikum@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/xinput1_3/xinput_private.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/xinput1_3/xinput_private.h b/dlls/xinput1_3/xinput_private.h
+index 74cf318a6fb..e172e0400e9 100644
+--- a/dlls/xinput1_3/xinput_private.h
++++ b/dlls/xinput1_3/xinput_private.h
+@@ -28,6 +28,6 @@ typedef struct _xinput_controller
+ } xinput_controller;
+ 
+-CRITICAL_SECTION xinput_crit;
+-xinput_controller controllers[XUSER_MAX_COUNT];
++extern CRITICAL_SECTION xinput_crit;
++extern xinput_controller controllers[XUSER_MAX_COUNT];
+ 
+ void HID_find_gamepads(xinput_controller *devices) DECLSPEC_HIDDEN;
+--

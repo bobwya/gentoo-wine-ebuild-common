@@ -1,0 +1,44 @@
+ddbf3c6ae6bb46483af71af9faf4505d067ee837..bc51c5d589de709e1d393b58b0cc5985c78061ac
+483e26259ba0530a42be722976df63a489a0e6d9..8405a5ebbafebe52f38f8dec93a93c7a834d7d19
+7483a38d4c4eb823362f093a3e721335b5854365..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+
+From 453980e13015e20dd551531be69b3361b63f22b1 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:21 -0600
+Subject: [PATCH] gphoto2.ds: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/gphoto2.ds/gphoto2_i.h    | 4 +++-
+ dlls/gphoto2.ds/gphoto2_main.c | 2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+
+diff --git a/dlls/gphoto2.ds/gphoto2_i.h b/dlls/gphoto2.ds/gphoto2_i.h
+index 9ab8bbbf33b..4171fcae4f4 100644
+--- a/dlls/gphoto2.ds/gphoto2_i.h
++++ b/dlls/gphoto2.ds/gphoto2_i.h
+@@ -101,5 +101,7 @@ struct tagActiveDS
+     struct jpeg_error_mgr		jerr;
+ #endif
+-} activeDS DECLSPEC_HIDDEN;
++};
++
++extern struct tagActiveDS activeDS DECLSPEC_HIDDEN;
+ 
+ /* Helper functions */
+diff --git a/dlls/gphoto2.ds/gphoto2_main.c b/dlls/gphoto2.ds/gphoto2_main.c
+index 28100414cc7..2376f95ec7e 100644
+--- a/dlls/gphoto2.ds/gphoto2_main.c
++++ b/dlls/gphoto2.ds/gphoto2_main.c
+@@ -33,4 +33,6 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(twain);
++ 
++struct tagActiveDS activeDS;
+ 
+ DSMENTRYPROC GPHOTO2_dsmentry;
+--

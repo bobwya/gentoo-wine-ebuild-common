@@ -1,0 +1,42 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..ad576b6965fe9ce695bbf91ac229b04459af02d3
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From da21c305164c3e585e29e20242afc5a31f91989f Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:27 -0600
+Subject: [PATCH] wbemprox: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+ dlls/wbemprox/main.c             | 2 ++
+ dlls/wbemprox/wbemprox_private.h | 4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/wbemprox/main.c b/dlls/wbemprox/main.c
+index e6ccd5c21c0..0fc11caa6ad 100644
+--- a/dlls/wbemprox/main.c
++++ b/dlls/wbemprox/main.c
+@@ -38,4 +38,6 @@ WINE_DEFAULT_DEBUG_CHANNEL(wbemprox);
+ static HINSTANCE instance;
+ 
++struct list *table_list;
++
+ typedef HRESULT (*fnCreateInstance)( LPVOID *ppObj );
+ 
+diff --git a/dlls/wbemprox/wbemprox_private.h b/dlls/wbemprox/wbemprox_private.h
+index ba25a02b6ac..b176a7884a2 100644
+--- a/dlls/wbemprox/wbemprox_private.h
++++ b/dlls/wbemprox/wbemprox_private.h
+@@ -21,6 +21,6 @@
+ #include "wine/unicode.h"
+ 
+-IClientSecurity client_security DECLSPEC_HIDDEN;
+-struct list *table_list DECLSPEC_HIDDEN;
++extern IClientSecurity client_security DECLSPEC_HIDDEN;
++extern struct list *table_list DECLSPEC_HIDDEN;
+ 
+ #define SIZEOF(array) (sizeof(array)/sizeof((array)[0]))
+--

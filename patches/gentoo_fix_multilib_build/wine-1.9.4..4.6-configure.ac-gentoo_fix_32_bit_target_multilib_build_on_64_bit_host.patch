@@ -1,0 +1,48 @@
+7d295d381c003eb2e43e781b818e5eaeb8a27f3c..86a5dc80d839fbef7802ddb44f638ea0a00cf950
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+7483a38d4c4eb823362f093a3e721335b5854365..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+
+From 7592d0a40715b9c7b6949d888297a7cf59d0afbd Mon Sep 17 00:00:00 2001
+From: Robert Walker <bob.mt.wya@gmail.com>
+Date: Thu, 2 Mar 2023 11:45:57 +0000
+Subject: [PATCH] configure.ac: fix 32-bit target build on 64-bit host
+
+Fix Gentoo specific multilib Portage 32-bit build on 64-bit host
+system.
+
+See: https://bugs.gentoo.org/show_bug.cgi?id=395615
+
+Explicitly add the required -m32/m64 to *FLAGS; this overrides any
+arch-specific -m* flags that may have been appended by multilib-portage.
+
+Even though -m32/m64 is now added to *FLAGS, -m32/m64 still has to be
+explicitly added to CC and CXX due to wine's build system. For example,
+winegcc saves the build-time value of CC and uses it at runtime.
+---
+
+ configure.ac | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+
+diff --git a/configure.ac b/configure.ac
+index 19abd084ddf..03310bde640 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -142,4 +142,7 @@ case $host in
+       CC="$CC -m32"
+       CXX="$CXX -m32"
++      CFLAGS="$CFLAGS -m32"
++      LDFLAGS="$LDFLAGS -m32"
++      CXXFLAGS="$CXXFLAGS -m32"
+       AC_MSG_CHECKING([whether $CC works])
+       AC_LINK_IFELSE([AC_LANG_PROGRAM()],AC_MSG_RESULT([yes]),
+@@ -161,4 +164,7 @@ case $host in
+       CC="$CC -m64"
+       CXX="$CXX -m64"
++      CFLAGS="$CFLAGS -m64"
++      LDFLAGS="$LDFLAGS -m64"
++      CXXFLAGS="$CXXFLAGS -m64"
+       host_cpu="x86_64"
+       notice_platform="64-bit "
+--

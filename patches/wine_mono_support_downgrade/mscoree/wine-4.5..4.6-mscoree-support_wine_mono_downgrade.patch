@@ -1,0 +1,37 @@
+23181b40c5d8eba1275ffa41f30e84d30660064e..a640a7a32fa8b3f5d9426cca7e0d0ba2826d299d
+
+From 6db51e779e0a40a241ddf3d6cc8eab42db495eec Mon Sep 17 00:00:00 2001
+From: Robert Walker <bob.mt.wya@gmail.com>
+Date: Mon, 27 Feb 2023 12:23:27 +0000
+Subject: [PATCH] mscoree: support wine-mono downgrade
+
+Fixes installation of an earlier version of wine-mono, to a WINEPREFIX,
+if the current Wine version is downgraded.
+The stock behaviour of Wine is to leave, newer versions of wine-mono,
+installed in a WINEPREFIX. This will break any applications that require
+wine-mono support.
+---
+
+ dlls/mscoree/mscoree_main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/mscoree/mscoree_main.c b/dlls/mscoree/mscoree_main.c
+index 6393af8c6c5..37279620e0f 100644
+--- a/dlls/mscoree/mscoree_main.c
++++ b/dlls/mscoree/mscoree_main.c
+@@ -788,5 +788,5 @@ static BOOL install_wine_mono(void)
+         TRACE("found installed support package %s\n", versionstringbuf);
+ 
+-        if (compare_versions(WINE_MONO_VERSION, versionstringbuf) <= 0)
++        if (compare_versions(WINE_MONO_VERSION, versionstringbuf) == 0)
+         {
+             TRACE("support package is at least %s, quitting\n", WINE_MONO_VERSION);
+@@ -821,5 +821,5 @@ static BOOL install_wine_mono(void)
+         TRACE("found support msi version %s at %s\n", versionstringbuf, debugstr_w(support_msi_path));
+ 
+-        if (compare_versions(WINE_MONO_VERSION, versionstringbuf) <= 0)
++        if (compare_versions(WINE_MONO_VERSION, versionstringbuf) == 0)
+         {
+             TRACE("installing support msi\n");
+--

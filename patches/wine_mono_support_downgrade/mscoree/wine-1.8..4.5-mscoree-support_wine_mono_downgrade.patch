@@ -1,0 +1,40 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..dc2c580bdfab2b6850241afae66d7dee5db94c0e
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+668161b4fe83800fc439cd12019959a56ce8702d..14509ebdf7cdfe0d3c88e6da877ef3d9fbdc6bab
+7483a38d4c4eb823362f093a3e721335b5854365..3c16e4a7d0c9dfcd62dbb42e37c2cf564d6c578b
+
+From 6db51e779e0a40a241ddf3d6cc8eab42db495eec Mon Sep 17 00:00:00 2001
+From: Robert Walker <bob.mt.wya@gmail.com>
+Date: Mon, 27 Feb 2023 12:23:27 +0000
+Subject: [PATCH] mscoree: support wine-mono downgrade
+
+Fixes installation of an earlier version of wine-mono, to a WINEPREFIX,
+if the current Wine version is downgraded.
+The stock behaviour of Wine is to leave, newer versions of wine-mono,
+installed in a WINEPREFIX. This will break any applications that require
+wine-mono support.
+---
+
+ dlls/mscoree/mscoree_main.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+
+diff --git a/dlls/mscoree/mscoree_main.c b/dlls/mscoree/mscoree_main.c
+index 8b46fd512a7..731f2079913 100644
+--- a/dlls/mscoree/mscoree_main.c
++++ b/dlls/mscoree/mscoree_main.c
+@@ -718,11 +718,6 @@ static BOOL install_wine_mono(void)
+         for (i=0; i<3; i++)
+         {
+-            if (current_version[i] < wanted_version[i])
++            if (current_version[i] != wanted_version[i])
+                 break;
+-            else if (current_version[i] > wanted_version[i])
+-            {
+-                TRACE("installed version is newer than %s, quitting\n", mono_version);
+-                return TRUE;
+-            }
+         }
+ 
+--

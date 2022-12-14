@@ -1,0 +1,55 @@
+595f2846b2064a6ebeb0b02133e2d68851fb1c06..758e75cc46afe7d0349615998f533abca5eeca26
+
+commit 2b16e1fa6161dff3e8f38b11327842b24733fc7f
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Tue Jan 31 15:58:00 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Tue Jan 31 16:03:33 2023 +0000
+
+ntdll: add function wine_get_package_string()
+---
+
+ dlls/ntdll/ntdll.spec    | 1 +
+ dlls/ntdll/unix/loader.c | 8 ++++++++
+ libs/wine/wine.map       | 1 +
+ 3 files changed, 10 insertions(+)
+
+
+diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
+index 453c4827572..e70db816718 100644
+--- a/dlls/ntdll/ntdll.spec
++++ b/dlls/ntdll/ntdll.spec
+@@ -1612,4 +1612,5 @@
+ 
+ # Version
++@ cdecl -syscall wine_get_package_string()
+ @ cdecl -syscall wine_get_version()
+ @ cdecl -syscall wine_get_build_id()
+diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
+index bc5b627cbc9..5383328c257 100644
+--- a/dlls/ntdll/unix/loader.c
++++ b/dlls/ntdll/unix/loader.c
+@@ -361,4 +361,12 @@ const char * CDECL wine_get_version(void)
+ }
+ 
++/*********************************************************************
++ *                  wine_get_package_string
++ */
++const char * CDECL wine_get_package_string(void)
++{
++    return PACKAGE_STRING;
++}
++
+ 
+ /*********************************************************************
+diff --git a/libs/wine/wine.map b/libs/wine/wine.map
+index 192bf4bd46f..43eb73f742b 100644
+--- a/libs/wine/wine.map
++++ b/libs/wine/wine.map
+@@ -100,4 +100,5 @@ WINE_1.0
+     wine_get_ss;
+     wine_get_user_name;
++    wine_get_package_string;
+     wine_get_version;
+     wine_is_dbcs_leadbyte;
+--

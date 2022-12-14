@@ -1,3 +1,5 @@
+..
+
 diff --git a/tools/wineapploader.in b/tools/wineapploader.in
 index f48d552..14001a0 100755
 --- a/tools/wineapploader.in

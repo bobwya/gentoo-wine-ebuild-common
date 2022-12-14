@@ -1,0 +1,71 @@
+af1a328fa0da4df7a73688528e49a568dcea995e..4826900a30a431faa8bcc9e3f0007f794d8d15bb
+
+commit 2b16e1fa6161dff3e8f38b11327842b24733fc7f
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Tue Jan 31 15:58:00 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Tue Jan 31 16:03:33 2023 +0000
+
+ntdll: add function wine_get_package_string()
+---
+
+ dlls/ntdll/ntdll.spec    | 1 +
+ dlls/ntdll/unix/loader.c | 8 ++++++++
+ libs/wine/config.c       | 6 ++++++
+ libs/wine/wine.map       | 1 +
+ 4 files changed, 16 insertions(+)
+
+
+diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
+index 5f69cfe785c..92b9c89029a 100644
+--- a/dlls/ntdll/ntdll.spec
++++ b/dlls/ntdll/ntdll.spec
+@@ -1602,4 +1602,5 @@
+ 
+ # Version
++@ cdecl -syscall wine_get_package_string()
+ @ cdecl -syscall wine_get_version()
+ @ cdecl -syscall wine_get_build_id()
+diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
+index 1a449714d07..59ee8f69f1c 100644
+--- a/dlls/ntdll/unix/loader.c
++++ b/dlls/ntdll/unix/loader.c
+@@ -362,4 +362,12 @@ const char * CDECL wine_get_version(void)
+ }
+ 
++/*********************************************************************
++ *                  wine_get_package_string
++ */
++const char * CDECL wine_get_package_string(void)
++{
++    return PACKAGE_STRING;
++}
++
+ 
+ /*********************************************************************
+diff --git a/libs/wine/config.c b/libs/wine/config.c
+index f5b4c0de9af..df4baf862d0 100644
+--- a/libs/wine/config.c
++++ b/libs/wine/config.c
+@@ -516,4 +516,10 @@ const char *wine_get_version(void)
+ }
+ 
++/* return the standard package string */
++const char *wine_get_package_string(void)
++{
++    return PACKAGE_STRING;
++}
++
+ /* return the build id string */
+ const char *wine_get_build_id(void)
+diff --git a/libs/wine/wine.map b/libs/wine/wine.map
+index 1143b129734..3853d7da511 100644
+--- a/libs/wine/wine.map
++++ b/libs/wine/wine.map
+@@ -13,4 +13,5 @@ WINE_1.0
+     wine_exec_wine_binary;
+     wine_get_build_id;
++    wine_get_package_string;
+     wine_get_version;
+     wine_init;
+--

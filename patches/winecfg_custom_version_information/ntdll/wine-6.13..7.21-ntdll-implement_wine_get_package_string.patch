@@ -1,0 +1,127 @@
+c4b194f4d959da3d1103085e6421b9b1fdb494f8..0adec25f92219b5626b8ee3c1c13396d36e56ed3
+7ab14aba1a1852724ef1aaa408c8bac6805919fb..8e4f7ddcef4a9b2913569e96431fe53c1fb20623
+
+commit 2b16e1fa6161dff3e8f38b11327842b24733fc7f
+Author:     Robert Walker <bob.mt.wya@gmail.com>
+AuthorDate: Tue Jan 31 15:58:00 2023 +0000
+Commit:     Robert Walker <bob.mt.wya@gmail.com>
+CommitDate: Tue Jan 31 16:03:33 2023 +0000
+
+ntdll: add function wine_get_package_string()
+---
+
+ dlls/ntdll/loader.c      |  1 +
+ dlls/ntdll/ntdll.spec    |  1 +
+ dlls/ntdll/ntdll_misc.h  |  1 +
+ dlls/ntdll/unix/system.c | 10 ++++++++++
+ dlls/ntdll/version.c     | 19 +++++++++++++++++++
+ include/winternl.h       |  1 +
+ libs/wine/wine.map       |  1 +
+ 7 files changed, 34 insertions(+)
+
+
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+index 3339596944a..ece273ffacb 100644
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -3825,4 +3825,5 @@ void WINAPI LdrInitializeThunk( CONTEXT *context, ULONG_PTR unknown2, ULONG_PTR
+         init_user_process_params();
+         load_global_options();
++        package_string_init();
+         version_init();
+ 
+diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
+index aad7bd89d14..cf8cb76537a 100644
+--- a/dlls/ntdll/ntdll.spec
++++ b/dlls/ntdll/ntdll.spec
+@@ -1641,4 +1641,5 @@
+ 
+ # Version
++@ cdecl wine_get_package_string()
+ @ cdecl wine_get_version()
+ @ cdecl wine_get_build_id()
+diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
+index acb927a9171..4f05f57350e 100644
+--- a/dlls/ntdll/ntdll_misc.h
++++ b/dlls/ntdll/ntdll_misc.h
+@@ -63,4 +63,5 @@ extern const char *debugstr_exception_code( DWORD code ) DECLSPEC_HIDDEN;
+ /* init routines */
+ extern void version_init(void) DECLSPEC_HIDDEN;
++extern void package_string_init(void) DECLSPEC_HIDDEN;
+ extern void debug_init(void) DECLSPEC_HIDDEN;
+ extern void actctx_init(void) DECLSPEC_HIDDEN;
+diff --git a/dlls/ntdll/unix/system.c b/dlls/ntdll/unix/system.c
+index fcc0fb6677e..4a191167cbf 100644
+--- a/dlls/ntdll/unix/system.c
++++ b/dlls/ntdll/unix/system.c
+@@ -2897,4 +2897,14 @@ NTSTATUS WINAPI NtQuerySystemInformation( SYSTEM_INFORMATION_CLASS class,
+     }
+ 
++case SystemWinePackageStringInformation:  /* 1001 */
++{
++    static const char package_string[] = PACKAGE_STRING;
++
++    len = strlen(package_string) + 4;
++    snprintf( info, size, "%s%c", package_string, 0 );
++    if (size < len) ret = STATUS_INFO_LENGTH_MISMATCH;
++    break;
++}
++
+     default:
+ 	FIXME( "(0x%08x,%p,0x%08x,%p) stub\n", class, info, size, ret_size );
+diff --git a/dlls/ntdll/version.c b/dlls/ntdll/version.c
+index 5f956d9d2e6..a6dea811bc2 100644
+--- a/dlls/ntdll/version.c
++++ b/dlls/ntdll/version.c
+@@ -208,6 +208,16 @@ static const struct { WCHAR name[12]; WINDOWS_VERSION ver; } version_names[] =
+ static const RTL_OSVERSIONINFOEXW *current_version;
+ 
++static char wine_package_string[256];
+ static char wine_version[256];
+ 
++/*********************************************************************
++ *                  wine_get_package_string
++ */
++const char * CDECL wine_get_package_string(void)
++{
++    return wine_package_string;
++}
++
++
+ /*********************************************************************
+  *                  wine_get_version
+@@ -454,4 +464,13 @@ static BOOL parse_win_version( HANDLE hkey )
+ 
+ 
++/**********************************************************************
++ *         package_string_init
++ */
++void package_string_init(void)
++{
++    NtQuerySystemInformation( SystemWinePackageStringInformation, wine_package_string, sizeof(wine_package_string), NULL );
++}
++
++
+ /**********************************************************************
+  *         version_init
+diff --git a/include/winternl.h b/include/winternl.h
+index 09804a21571..8677f05a3cd 100644
+--- a/include/winternl.h
++++ b/include/winternl.h
+@@ -1809,4 +1809,5 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
+ #ifdef __WINESRC__
+     SystemWineVersionInformation = 1000,
++    SystemWinePackageStringInformation = 1001,
+ #endif
+ } SYSTEM_INFORMATION_CLASS, *PSYSTEM_INFORMATION_CLASS;
+diff --git a/libs/wine/wine.map b/libs/wine/wine.map
+index f272a801743..2ec107930b3 100644
+--- a/libs/wine/wine.map
++++ b/libs/wine/wine.map
+@@ -93,4 +93,5 @@ WINE_1.0
+     wine_get_ss;
+     wine_get_user_name;
++    wine_get_package_string;
+     wine_get_version;
+     wine_init;
+--

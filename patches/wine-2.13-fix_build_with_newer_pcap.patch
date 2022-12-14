@@ -1,5 +1,7 @@
+..28173f06932edd85a64a952120d29b9bb1e762ea 
+..3b2fae0161aa15155cf76631a965ad0ad136b795 
+
 From 28173f06932edd85a64a952120d29b9bb1e762ea Mon Sep 17 00:00:00 2001
-From 3b2fae0161aa15155cf76631a965ad0ad136b795 Mon Sep 17 00:00:00 2001
 From: =?utf8?q?Andr=C3=A9=20Hentschel?= <nerv@dawncrow.de>
 Date: Fri, 21 Jul 2017 15:16:51 +0200
 Subject: [PATCH] wpcap: Fix build with newer pcap versions.

@@ -1,0 +1,168 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..82509d7c15c54931d1f450dcd5759df986bb33a4
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From f0131276474997b9d4e593bbf8c5616b879d3bd5 Mon Sep 17 00:00:00 2001
+From: Jacek Caban <jacek@codeweavers.com>
+Date: Tue, 18 May 2021 18:08:43 +0200
+Subject: [PATCH] msvcrt: Add sincos to importlib.
+
+Fixes cross compilation with GCC 11, which may optimize a pair of sin(),
+cos() calls to a single sincos() call, which is not exported by any
+msvcrt version.
+
+Signed-off-by: Jacek Caban <jacek@codeweavers.com>
+Signed-off-by: Piotr Caban <piotr@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/msvcr100/Makefile.in  |  1 +
+ dlls/msvcr110/Makefile.in  |  1 +
+ dlls/msvcr120/Makefile.in  |  1 +
+ dlls/msvcr70/Makefile.in   |  1 +
+ dlls/msvcr71/Makefile.in   |  1 +
+ dlls/msvcr80/Makefile.in   |  1 +
+ dlls/msvcr90/Makefile.in   |  1 +
+ dlls/msvcrt/Makefile.in    |  1 +
+ dlls/msvcrt/sincos.c (new) | 40 ++++++++++++++++++++++++++++++++++++++++
+ dlls/ucrtbase/Makefile.in  |  1 +
+ 10 files changed, 49 insertions(+)
+
+
+diff --git a/dlls/msvcr100/Makefile.in b/dlls/msvcr100/Makefile.in
+index ac9acf4d571..2d62b5cb059 100644
+--- a/dlls/msvcr100/Makefile.in
++++ b/dlls/msvcr100/Makefile.in
+@@ -29,4 +29,5 @@ C_SRCS = \
+ 	scanf.c \
+ 	string.c \
++	sincos.c \
+ 	thread.c \
+ 	time.c \
+diff --git a/dlls/msvcr110/Makefile.in b/dlls/msvcr110/Makefile.in
+index ac73a02ba9d..ac635624092 100644
+--- a/dlls/msvcr110/Makefile.in
++++ b/dlls/msvcr110/Makefile.in
+@@ -29,4 +29,5 @@ C_SRCS = \
+ 	scanf.c \
+ 	string.c \
++	sincos.c \
+ 	thread.c \
+ 	time.c \
+diff --git a/dlls/msvcr120/Makefile.in b/dlls/msvcr120/Makefile.in
+index 5e4a166ca3b..84cdac57db9 100644
+--- a/dlls/msvcr120/Makefile.in
++++ b/dlls/msvcr120/Makefile.in
+@@ -29,4 +29,5 @@ C_SRCS = \
+ 	scanf.c \
+ 	string.c \
++	sincos.c \
+ 	thread.c \
+ 	time.c \
+diff --git a/dlls/msvcr70/Makefile.in b/dlls/msvcr70/Makefile.in
+index f7b0910b54e..99494187872 100644
+--- a/dlls/msvcr70/Makefile.in
++++ b/dlls/msvcr70/Makefile.in
+@@ -28,4 +28,5 @@ C_SRCS = \
+ 	process.c \
+ 	scanf.c \
++	sincos.c \
+ 	string.c \
+ 	thread.c \
+diff --git a/dlls/msvcr71/Makefile.in b/dlls/msvcr71/Makefile.in
+index a62630e5bf5..e7dccfffcbf 100644
+--- a/dlls/msvcr71/Makefile.in
++++ b/dlls/msvcr71/Makefile.in
+@@ -28,4 +28,5 @@ C_SRCS = \
+ 	process.c \
+ 	scanf.c \
++	sincos.c \
+ 	string.c \
+ 	thread.c \
+diff --git a/dlls/msvcr80/Makefile.in b/dlls/msvcr80/Makefile.in
+index e17b7ac7e53..52c1b8b5eae 100644
+--- a/dlls/msvcr80/Makefile.in
++++ b/dlls/msvcr80/Makefile.in
+@@ -28,4 +28,5 @@ C_SRCS = \
+ 	process.c \
+ 	scanf.c \
++	sincos.c \
+ 	string.c \
+ 	thread.c \
+diff --git a/dlls/msvcr90/Makefile.in b/dlls/msvcr90/Makefile.in
+index d409039f680..675199e52b7 100644
+--- a/dlls/msvcr90/Makefile.in
++++ b/dlls/msvcr90/Makefile.in
+@@ -28,4 +28,5 @@ C_SRCS = \
+ 	process.c \
+ 	scanf.c \
++	sincos.c \
+ 	string.c \
+ 	thread.c \
+diff --git a/dlls/msvcrt/Makefile.in b/dlls/msvcrt/Makefile.in
+index 1632c6bf165..a3ea3af79d2 100644
+--- a/dlls/msvcrt/Makefile.in
++++ b/dlls/msvcrt/Makefile.in
+@@ -33,4 +33,5 @@ C_SRCS = \
+ 	wcs.c
+ 
++	sincos.c \
+ RC_SRCS = \
+ 	rsrc.rc
+diff --git a/dlls/msvcrt/sincos.c b/dlls/msvcrt/sincos.c
+new file mode 100644
+index 00000000000..1a34c50f034
+--- /dev/null
++++ b/dlls/msvcrt/sincos.c
+@@ -0,0 +1,40 @@
++/*
++ * sincos implementation
++ *
++ * Copyright 2021 Jacek Caban for CodeWeavers
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#if 0
++#pragma makedep implib
++#endif
++
++#include <math.h>
++
++/* GCC may optimize a pair of sin(), cos() calls to a single sincos() call,
++ * which is not exported by any msvcrt version. */
++
++void sincos(double x, double *s, double *c)
++{
++    *s = sin(x);
++    *c = cos(x);
++}
++
++void sincosf(float x, float *s, float *c)
++{
++    *s = sinf(x);
++    *c = cosf(x);
++}
+diff --git a/dlls/ucrtbase/Makefile.in b/dlls/ucrtbase/Makefile.in
+index c1677ca7c6e..b0aa3be130b 100644
+--- a/dlls/ucrtbase/Makefile.in
++++ b/dlls/ucrtbase/Makefile.in
+@@ -27,4 +27,5 @@ C_SRCS = \
+ 	process.c \
+ 	scanf.c \
++	sincos.c \
+ 	string.c \
+ 	thread.c \
+--

@@ -1,0 +1,45 @@
+a981d3738014339cd0fae1e7f5aa9429222ee03d..b0fc60d2794c870e33d9d22fd1369986520fcb83
+7a028ca613dbf9193d6c336fb6199431eef763cc..42d017be9282231e3ed49f7536f1f63ef233e216
+aa309dcd59e0f41c597b068ad7ffdf866faa6101..210ddb614c64a0f0cca9fda17cd2938facb2237c
+
+From 4a91eb362666b3af549c48b95e093051756628e0 Mon Sep 17 00:00:00 2001
+From: Michael Cronenworth <mike@cchtml.com>
+Date: Thu, 23 Jan 2020 17:05:26 -0600
+Subject: [PATCH] twain_32: Global variable compatibility update for gcc 10.
+
+Signed-off-by: Michael Cronenworth <mike@cchtml.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
+---
+
+ dlls/twain_32/twain32_main.c | 3 +++
+ dlls/twain_32/twain_i.h      | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+
+diff --git a/dlls/twain_32/twain32_main.c b/dlls/twain_32/twain32_main.c
+index f7b8f58223a..13a5212d7ee 100644
+--- a/dlls/twain_32/twain32_main.c
++++ b/dlls/twain_32/twain32_main.c
+@@ -31,4 +31,7 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(twain);
++ 
++TW_UINT16 DSM_twCC;
++activeDS *activeSources;
+ 
+ /* A helper function that looks up a destination identity in the active
+diff --git a/dlls/twain_32/twain_i.h b/dlls/twain_32/twain_i.h
+index a8fa2fb94d9..eb8f829c7bb 100644
+--- a/dlls/twain_32/twain_i.h
++++ b/dlls/twain_32/twain_i.h
+@@ -40,7 +40,7 @@ typedef struct tagActiveDS
+ } activeDS;
+ 
+-TW_UINT16 DSM_twCC DECLSPEC_HIDDEN;             /* current condition code of Source Manager */
++extern TW_UINT16 DSM_twCC DECLSPEC_HIDDEN;             /* current condition code of Source Manager */
+ 
+-activeDS *activeSources DECLSPEC_HIDDEN;	/* list of active data sources */
++extern activeDS *activeSources DECLSPEC_HIDDEN;	/* list of active data sources */
+ 
+ /* Implementation of operation triplets (From Application to Source Manager) */
+--

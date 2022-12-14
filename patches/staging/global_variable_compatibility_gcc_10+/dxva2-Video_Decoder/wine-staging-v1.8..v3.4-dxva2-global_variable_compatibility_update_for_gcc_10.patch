@@ -1,0 +1,21 @@
+8a378ee8e7dcd1527add431db61b1c3e52103b33..1dfd404d6de50e776d805aa0ef78abdcb1775693
+
+
+ patches/dxva2-Video_Decoder/0009-dxva2-Add-DRM-mode-for-vaapi.patch | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+
+diff --git a/patches/dxva2-Video_Decoder/0009-dxva2-Add-DRM-mode-for-vaapi.patch b/patches/dxva2-Video_Decoder/0009-dxva2-Add-DRM-mode-for-vaapi.patch
+index 4992ba47..446157a3 100644
+--- a/patches/dxva2-Video_Decoder/0009-dxva2-Add-DRM-mode-for-vaapi.patch
++++ b/patches/dxva2-Video_Decoder/0009-dxva2-Add-DRM-mode-for-vaapi.patch
+@@ -54,6 +54,6 @@ index 5df59bd..14ac586 100644
+  /* public */
+  extern BOOL config_vaapi_enabled DECLSPEC_HIDDEN;
+-+BOOL config_vaapi_drm DECLSPEC_HIDDEN;
+-+char config_vaapi_drm_path[MAX_PATH] DECLSPEC_HIDDEN;
+++extern BOOL config_vaapi_drm DECLSPEC_HIDDEN;
+++extern char config_vaapi_drm_path[MAX_PATH] DECLSPEC_HIDDEN;
+  extern IWineVideoService *vaapi_videoservice_create( void ) DECLSPEC_HIDDEN;
+  
+--
